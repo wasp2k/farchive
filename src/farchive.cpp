@@ -28,8 +28,10 @@ farchive::~farchive()
 
 /* ------------------------------------------------------------------------- */
 
-void farchive::create(const char *fileName)
+int farchive::create(const char *fileName)
 {
+   setLastError(UNDEFINED);
+
    m_file.create( fileName );                               /* Create file */
    m_file.write( &m_version, sizeof( m_version ) );         /* Write file pattern */
 
@@ -38,6 +40,8 @@ void farchive::create(const char *fileName)
    close();                                                 /* Close file */
 
    open(fileName);                                          /* Open file again */
+
+   return getRetval();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -53,7 +57,7 @@ void farchive::createFileHeader(void)
 
 /* ------------------------------------------------------------------------- */
 
-void farchive::open(const char *fileName)
+int farchive::open(const char *fileName)
 {
    VERSION ver;
 
@@ -69,13 +73,15 @@ void farchive::open(const char *fileName)
 
    m_currObj.setOfs(m_header.getOfs());                     /* Adjust current object */
    m_currObj.readHeader(m_file);
+
+   return -1;
 }
 
 /* ------------------------------------------------------------------------- */
 
-void farchive::close(void)
+int farchive::close(void)
 {
-   m_file.close();
+   return m_file.close();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -121,7 +127,8 @@ void farchive::getObject(fobject &obj)
 
 bool farchive::isEOF(void)
 {
-   bool retVal;
+   bool retVal = false;
+   /* TODO
    long int fileSize = m_file.getSize();
    long int nextOfs = m_currObj.getOfs() + m_currObj.getBlockSize();
 
@@ -131,7 +138,7 @@ bool farchive::isEOF(void)
    } else
    {
       retVal = false;
-   }
+   }*/
    return retVal;
 }
 

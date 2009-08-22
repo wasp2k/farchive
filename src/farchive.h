@@ -1,10 +1,11 @@
 #ifndef FARCHIVE_H
 #define FARCHIVE_H
 
+#include "ferror.h"
 #include "ffile.h"
 #include "fobject.h"
 
-class farchive
+class farchive : ferror
 {
 private:
    struct VERSION
@@ -33,9 +34,9 @@ public:
    farchive();
    virtual ~farchive();
 
-   virtual void create(const char *fileName);
-   virtual void open(const char *fileName);
-   virtual void close(void);
+   virtual int create(const char *fileName);
+   virtual int open(const char *fileName);
+   virtual int close(void);
 
    virtual void moveFirst(void);
    virtual void moveNext(void);

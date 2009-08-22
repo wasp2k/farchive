@@ -11,7 +11,7 @@ ffile::ffile()
 
 ffile::~ffile()
 {
-   if ( isOpen() )
+   if ( isOpen() )   /* close the file before desctuct */
       close();
 }
 
@@ -20,15 +20,18 @@ ffile::~ffile()
 int ffile::create(const char *fileName)
 {
    setLastError(UNDEFINED);
+
    if ( isOpen() )
    {
-      close();
+      if (close()==-1)
+      {
+      }
    } else
    {
       setLastError(NO_ERROR);
    }
 
-   if ( succeeded() != -1 )
+   if ( getRetval() != -1 )
    {
       m_file = fopen( fileName, "w+" );
       if ( m_file == NULL )
@@ -40,7 +43,7 @@ int ffile::create(const char *fileName)
          setLastError(NO_ERROR);
       }
    }
-   return succeeded();
+   return getRetval();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -50,13 +53,15 @@ int ffile::open(const char *fileName)
    setLastError(UNDEFINED);
    if ( isOpen() )
    {
-      close();
+      if (close()==-1)
+      {
+      }
    } else
    {
       setLastError(NO_ERROR);
    }
 
-   if ( succeeded() != -1 )
+   if ( getRetval() != -1 )
    {
       m_file = fopen( fileName, "r+" );
       if ( m_file == NULL )
@@ -68,7 +73,7 @@ int ffile::open(const char *fileName)
          setLastError(NO_ERROR);
       }
    }
-   return succeeded();
+   return getRetval();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -88,64 +93,82 @@ int ffile::close(void)
          setLastError(NO_ERROR);
       }
    }
-   return succeeded();
+   return getRetval();
 }
 
 /* ------------------------------------------------------------------------- */
 
-void ffile::write(const void *buf, const size_t size)
+int ffile::write(const void *buf, const int size)
 {
-   size_t elementsWritten;
-
-   elementsWritten = fwrite(buf, size, 1, m_file );
-
-   if ( elementsWritten != 1 )
+   size_t written;
+   setLastError(UNDEFINED);
+   written = fwrite(buf, (size_t)size, 1, m_file );
+   if ( written != 1 )
    {
-      //throw( new FCException( FCException::WRITE_FILE_FAILED ) );
+      setLastError(FILE_WRITE_FAILED);
+   } else
+   {
+      setLastError(NO_ERROR);
+   }
+   return getRetval();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int ffile::read(void *buf, const int size)
+{
+   size_t read;
+   setLastError(UNDEFINED);
+   read = fread(buf, (size_t)size, 1, m_file );
+   if ( read != 1 )
+   {
+      setLastError(FILE_READ_FAILED);
+   } else
+   {
+      setLastError(NO_ERROR);
+   }
+   return getRetval();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int ffile::seek(const int ofs, const ffile::ORIGIN origin)
+{
+   setLastError(UNDEFINED);
+   if ( fseek( m_file, (long int)ofs, origin ) != 0 )
+   {
+      setLastError(FILE_SEEK_FAILED);
+   } else
+   {
+      setLastError(NO_ERROR);
+   }
+
+   if ( getRetval() != -1 )
+   {
+      return getRetval( ftell(m_file) );
+   } else
+   {
+      return -1;
    }
 }
 
 /* ------------------------------------------------------------------------- */
 
-void ffile::read(void *buf, const size_t size)
-{
-   size_t elementsRead;
-
-   elementsRead = fread(buf, size, 1, m_file );
-   if ( elementsRead != 1 )
-   {
-      //throw( new FCException( FCException::READ_FILE_FAILED ) );
-   }
-}
-
-/* ------------------------------------------------------------------------- */
-
-long int ffile::seek(const long int ofs, const ffile::ORIGIN origin)
-{
-   if ( fseek( m_file, ofs, origin ) != 0 )
-   {
-      //throw( new FCException( FCException::SEEK_FAILED ) );
-   }
-   return ftell( m_file );
-}
-
-/* ------------------------------------------------------------------------- */
-
-long int ffile::tell(void)
+int ffile::tell(void)
 {
    long int ofs;
+
+   setLastError(UNDEFINED);
 
    ofs = ftell( m_file );
    if ( ofs == -1 )
    {
-      //throw( new FCException( FCException::TELL_FAILED ) );
-   }
-
-   /*if ( ofs != m_ofs )
+      setLastError(FILE_TELL_FAILED);
+   } else
    {
-      //throw( new FCException( FCException::SEEK_SYNC_FAILED ) );
-   }*/
-   return ofs;
+      setLastError(NO_ERROR);
+   }
+   return getRetval((int)ofs);
 }
 
 /* ------------------------------------------------------------------------- */

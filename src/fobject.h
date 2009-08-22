@@ -3,7 +3,7 @@
 
 #include "ffile.h"
 
-#define FCOBJECT_INCLUDE_PATTEN  1
+#define FOBJECT_INCLUDE_DEBUG_PATTEN  1
 
 class fobject
 {
@@ -12,7 +12,7 @@ private:
 
    struct OBJECT
    {
-      #if FCOBJECT_INCLUDE_PATTEN
+      #if FOBJECT_INCLUDE_DEBUG_PATTEN
       unsigned int pattern;
       #endif
       unsigned int id;

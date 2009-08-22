@@ -27,11 +27,11 @@ public:
     int create(const char *fileName);
     int close(void);
 
-    void write(const void *buf, const size_t size);
-    void read(void *buf, const size_t size);
+    int write(const void *buf, const int size);
+    int read(void *buf, const int size);
 
-    long int seek(const long int ofs, const ORIGIN origin); /* Origin: SEEK_SET, SEEK_CUR, SEEK_END */
-    long int tell(void);
+    int seek(const int ofs, const ORIGIN origin); /* Origin: SEEK_SET, SEEK_CUR, SEEK_END */
+    int tell(void);
 
     inline bool isOpen(void){ return m_file != NULL; }
 

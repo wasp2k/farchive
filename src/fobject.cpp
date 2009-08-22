@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include "fobject.h"
 
-#if FCOBJECT_INCLUDE_PATTEN
-   #define FCOBJECT_PATTERN      0x3a4a424f
+#if FOBJECT_INCLUDE_DEBUG_PATTEN
+   #define FOBJECT_PATTERN      0x3a4a424f
 #endif
 
 /* ------------------------------------------------------------------------- */
@@ -57,8 +57,8 @@ void fobject::readHeader(ffile &file)
       m_data = NULL;
    }
 
-   #if FCOBJECT_INCLUDE_PATTEN
-   if ( obj.pattern != FCOBJECT_PATTERN )
+   #if FOBJECT_INCLUDE_DEBUG_PATTEN
+   if ( obj.pattern != FOBJECT_PATTERN )
    {
       /*throw( new FCException(FCException::BAD_OBJECT_PATTERN) );*/
    }
@@ -116,8 +116,8 @@ void fobject::flush(ffile &file)
       {
          file.seek(0, ffile::END );
          m_ofs = file.tell();
-         #if FCOBJECT_INCLUDE_PATTEN
-         m_obj.pattern = FCOBJECT_PATTERN;
+         #if FOBJECT_INCLUDE_DEBUG_PATTEN
+         m_obj.pattern = FOBJECT_PATTERN;
          #endif
          file.write( &m_obj, sizeof( m_obj ) );
       } else
