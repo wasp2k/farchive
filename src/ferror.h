@@ -1,5 +1,5 @@
-#ifndef FCEXCEPTION_H
-#define FCEXCEPTION_H
+#ifndef FERROR_H
+#define FERROR_H
 
 class ferror
 {
@@ -50,4 +50,4 @@ public:
    inline int succeeded(void){ return ((m_lastError == NO_ERROR) ? 0 : -1); }
 };
 
-#endif // FCEXCEPTION_H
+#endif // FERROR_H

@@ -1,5 +1,5 @@
-#ifndef IFFILE_H
-#define IFFILE_H
+#ifndef FFILE_H
+#define FFILE_H
 
 #include <stdio.h>
 
@@ -38,4 +38,4 @@ public:
     long int getSize(void);
 };
 
-#endif // IFFILE_H
+#endif // FFILE_H
