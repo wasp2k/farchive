@@ -1,14 +1,15 @@
 #ifndef FOBJECT_H
 #define FOBJECT_H
 
+#include "ferror.h"
 #include "ffile.h"
 
 #define FOBJECT_INCLUDE_DEBUG_PATTEN  1
 
-class fobject
+class fobject : public ferror
 {
 private:
-   long int m_ofs;
+   int m_ofs;
 
    struct OBJECT
    {
@@ -23,8 +24,11 @@ private:
    OBJECT m_obj;
    char *m_data;
    unsigned int m_dataSize;
-   bool m_dirty;
    bool m_onlyHeader;
+
+
+   int allocPayload(int size);
+   void freePayload(void);
 
 public:
    enum
@@ -36,9 +40,9 @@ public:
    fobject(long int ofs = -1, unsigned int size = 0);
    virtual ~fobject();
 
-   void readHeader(ffile &file);
+   int readHeader(ffile &file);
    void read(ffile &file);
-   void flush(ffile &file);
+   int flush(ffile &file);
 
    inline unsigned int getOfs() const{return m_ofs; }
    inline void setOfs(long int ofs){ m_ofs = ofs; }
@@ -53,9 +57,6 @@ public:
    inline unsigned int getBlockSize(){ return m_obj.size + sizeof( OBJECT ); }
 
    inline void *getPtr(){ return m_data; }
-
-   inline bool isDirty(){ return m_dirty; }
-   inline void setDirty(){ m_dirty = true; }
 
    void zero();
 };

@@ -47,7 +47,7 @@ public:
 
    virtual bool isEOF(void);
 
-   virtual void add(fobject &obj);
+   virtual int add(fobject &obj);
 
    virtual bool remove(const unsigned int objId);
 };

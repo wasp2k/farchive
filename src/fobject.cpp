@@ -10,63 +10,104 @@
 
 fobject::fobject(long int ofs, unsigned int size)
 {
-   if ( size > 0 )
-   {
-      m_data = (char *)malloc( size );
-      if ( m_data == NULL )
-      {
-         /*throw( new FCException(FCException::ALLOC_FAILED) );*/
-      }
-      m_dataSize = size;
-   } else
-   {
-      m_data = NULL;
-   }
+   allocPayload(size);
 
    m_ofs = ofs;
    m_obj.id = 0;
    m_obj.size = size;
    m_obj.options = 0;
-   m_dirty = true;
 }
 
 /* ------------------------------------------------------------------------- */
 
 fobject::~fobject()
 {
+   freePayload();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fobject::allocPayload(int size)
+{
+   setLastError(NO_ERROR);
+
+   freePayload();
+
+   if ( size > 0 )
+   {
+      m_data = (char *)malloc( size );
+      if ( m_data != NULL )
+      {
+         m_dataSize = size;
+         setLastError(NO_ERROR);
+      }
+      else
+      {
+         setLastError(ALLOC_FAILED);
+         m_dataSize = 0;
+      }
+   } else
+   {
+      setLastError(NO_ERROR);
+      m_data = NULL;
+      m_dataSize = 0;
+   }
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+void fobject::freePayload(void)
+{
    if ( m_data != NULL )
    {
       free(m_data);
+      m_data = NULL;
+      m_dataSize = 0;
    }
 }
 
 /* ------------------------------------------------------------------------- */
 
-void fobject::readHeader(ffile &file)
+int fobject::readHeader(ffile &file)
 {
    OBJECT obj;
 
-   file.seek(m_ofs,ffile::SET);                             /* Seek to the offset */
-   file.read(&obj, sizeof(obj));                             /* Read object header */
+   setLastError(UNDEFINED);
 
-   fdbg(9, "FCObject::readHeader id: %d ofs: %d siz: %d", obj.id, m_ofs, obj.size );
-
-   if ( m_data != NULL )
+   file.seek(m_ofs,ffile::SET);                                /* Seek to the offset */
+   if ( file.getStatus() == -1 )
    {
-      free( m_data );
-      m_data = NULL;
+      setLastError(file);
+   } else
+   {
+      file.read(&obj, sizeof(obj));                               /* Read object header */
+      if ( file.getStatus() == -1 )
+      {
+         setLastError(file);
+      } else
+      {
+         FDBG("FCObject::readHeader id: %d ofs: %d siz: %d", obj.id, m_ofs, obj.size );
+
+         if ( m_data != NULL )
+         {
+            free( m_data );
+            m_data = NULL;
+         }
+
+         #if FOBJECT_INCLUDE_DEBUG_PATTEN
+         if ( obj.pattern != FOBJECT_PATTERN )
+         {
+            /*throw( new FCException(FCException::BAD_OBJECT_PATTERN) );*/
+         }
+         #endif
+
+         m_obj = obj;
+         m_onlyHeader = true;
+      }
    }
 
-   #if FOBJECT_INCLUDE_DEBUG_PATTEN
-   if ( obj.pattern != FOBJECT_PATTERN )
-   {
-      /*throw( new FCException(FCException::BAD_OBJECT_PATTERN) );*/
-   }
-   #endif
-
-   m_obj = obj;
-   m_dirty = false;
-   m_onlyHeader = true;
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -98,35 +139,52 @@ void fobject::read(ffile &file)
       m_dataSize = m_obj.size;
    }
    file.read(m_data, m_obj.size);          /* Read object payload */
-   m_dirty = false;
 }
 
 /* ------------------------------------------------------------------------- */
 
-void fobject::flush(ffile &file)
+int fobject::flush(ffile &file)
 {
-   if ( 1 || m_dirty )
+   setLastError(UNDEFINED);
+   if (!file.isOpen())
    {
-      if ( m_data == 0 )
+      setLastError(BAD_FILE_OBJECT);
+   } else
+   {
+      if (m_data == NULL)
       {
-         /*throw( new FCException(FCException::BAD_OBJECT_PAYLOAD) );*/
-      }
-      
-      if ( m_ofs == -1 )
-      {
-         file.seek(0, ffile::END );
-         m_ofs = file.tell();
-         #if FOBJECT_INCLUDE_DEBUG_PATTEN
-         m_obj.pattern = FOBJECT_PATTERN;
-         #endif
-         file.write( &m_obj, sizeof( m_obj ) );
+         setLastError(BAD_OBJECT_PAYLOAD);
       } else
       {
-         file.seek( m_ofs + sizeof( OBJECT ), ffile::SET );
+         if (m_ofs == -1)
+         {
+            m_ofs = file.seek(0, ffile::END );        /* Move to the end of the file */
+
+
+            #if FOBJECT_INCLUDE_DEBUG_PATTEN
+            m_obj.pattern = FOBJECT_PATTERN;
+            #endif
+
+            file.write( &m_obj, sizeof( m_obj ) );    /* write object header */
+            if ( file.getStatus() == -1 )
+               setLastError(file);
+         } else
+         {
+            file.seek( m_ofs + sizeof( OBJECT ), ffile::SET ); /* Move to the object offset */
+            if ( file.getStatus() == -1 )
+               setLastError(file);
+         }
+
+
+         if (getStatus())
+         {
+            file.write( m_data, m_obj.size );            /* write object payload */
+            if ( file.getStatus() == -1 )
+               setLastError(file);
+         }
       }
-      file.write( m_data, m_obj.size );
-      m_dirty = false;
    }
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -136,7 +194,6 @@ void fobject::setId(unsigned int id)
    if ( m_obj.id != id )
    {
       m_obj.id = id;
-      m_dirty = true;
    }
 }
 
@@ -147,7 +204,6 @@ void fobject::setOptions(unsigned int options)
    if ( m_obj.options != options )
    {
       m_obj.options = options;
-      m_dirty = true;
    }
 }
 

@@ -27,6 +27,7 @@ public:
       /* FC Object */
       BAD_OBJECT_PAYLOAD,
       BAD_OBJECT_PATTERN,
+      BAD_FILE_OBJECT,
 
       /* FC Indexed Archive */
       BAD_INDEX_OBJECT,
@@ -43,10 +44,11 @@ public:
    ferror();
    ferror(ERRORCODE lastError);
 
-   inline ERRORCODE getLastError(){ return m_lastError; }
+   inline ERRORCODE getLastError() const { return m_lastError; }
    inline void setLastError(ERRORCODE lastError){ m_lastError = lastError; }
+   inline void setLastError(const ferror &error){ m_lastError = error.getLastError(); }
 
-   inline int getRetval(int retValue=0){ return ((m_lastError == NO_ERROR) ? retValue : -1); }
+   inline int getStatus(int retValue=0) const { return ((m_lastError == NO_ERROR) ? retValue : -1); }
 };
 
 #endif // FERROR_H

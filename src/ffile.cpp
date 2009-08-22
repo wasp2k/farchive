@@ -31,7 +31,7 @@ int ffile::create(const char *fileName)
       setLastError(NO_ERROR);
    }
 
-   if ( getRetval() != -1 )
+   if ( getStatus() != -1 )
    {
       m_file = fopen( fileName, "w+" );
       if ( m_file == NULL )
@@ -43,7 +43,7 @@ int ffile::create(const char *fileName)
          setLastError(NO_ERROR);
       }
    }
-   return getRetval();
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -61,7 +61,7 @@ int ffile::open(const char *fileName)
       setLastError(NO_ERROR);
    }
 
-   if ( getRetval() != -1 )
+   if ( getStatus() != -1 )
    {
       m_file = fopen( fileName, "r+" );
       if ( m_file == NULL )
@@ -73,7 +73,7 @@ int ffile::open(const char *fileName)
          setLastError(NO_ERROR);
       }
    }
-   return getRetval();
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -93,7 +93,7 @@ int ffile::close(void)
          setLastError(NO_ERROR);
       }
    }
-   return getRetval();
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -110,7 +110,7 @@ int ffile::write(const void *buf, const int size)
    {
       setLastError(NO_ERROR);
    }
-   return getRetval();
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -127,7 +127,7 @@ int ffile::read(void *buf, const int size)
    {
       setLastError(NO_ERROR);
    }
-   return getRetval();
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -143,9 +143,9 @@ int ffile::seek(const int ofs, const ffile::ORIGIN origin)
       setLastError(NO_ERROR);
    }
 
-   if ( getRetval() != -1 )
+   if ( getStatus() != -1 )
    {
-      return getRetval( ftell(m_file) );
+      return getStatus( ftell(m_file) );
    } else
    {
       return -1;
@@ -166,7 +166,7 @@ int ffile::tell(void)
    {
       setLastError(NO_ERROR);
    }
-   return getRetval((int)ofs);
+   return getStatus((int)ofs);
 }
 
 /* ------------------------------------------------------------------------- */
