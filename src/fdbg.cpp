@@ -17,11 +17,13 @@ void fdbgSetLevel(const FDBG_LEVELS lvl)
 
 /* ------------------------------------------------------------------------- */
 
-void fdbgMessage(const char *tag, const char *format, va_list args )
+static void fdbgMessage(const char *tag, const char *func, const char *format, va_list args )
 {
    FILE *f;
    f = fopen(FCDBG_FILE, "at+" );
    fputs( tag, f );
+   fputs( func, f );
+   fputs( ":", f );
    vfprintf (f, format, args);
    fputs( "\n", f );
    fclose(f);
@@ -29,52 +31,52 @@ void fdbgMessage(const char *tag, const char *format, va_list args )
 
 /* ------------------------------------------------------------------------- */
 
-void fdbgErr(const char *format, ... )
+void fdbgErr(const char *func,const char *format, ... )
 {
    if ( g_fcDbgLvl <= FLVL_ERR )
    {
       va_list args;
       va_start (args, format);
-      fdbgMessage("ERR:", format, args);
+      fdbgMessage("ERR:", func, format, args);
       va_end (args);
    }
 }
 
 /* ------------------------------------------------------------------------- */
 
-void fdbgWarn(const char *format, ... )
+void fdbgWarn(const char *func,const char *format, ... )
 {
    if ( g_fcDbgLvl <= FLVL_WARN )
    {
       va_list args;
       va_start (args, format);
-      fdbgMessage("WRN:", format, args);
+      fdbgMessage("WRN:", func, format, args);
       va_end (args);
    }
 }
 
 /* ------------------------------------------------------------------------- */
 
-void fdbgInfo(const char *format, ... )
+void fdbgInfo(const char *func,const char *format, ... )
 {
    if ( g_fcDbgLvl <= FLVL_INFO )
    {
       va_list args;
       va_start (args, format);
-      fdbgMessage("INF:", format, args);
+      fdbgMessage("INF:", func, format, args);
       va_end (args);
    }
 }
 
 /* ------------------------------------------------------------------------- */
 
-void fdbgDbg(const char *format, ... )
+void fdbgDbg(const char *func,const char *format, ... )
 {
    if ( g_fcDbgLvl <= FLVL_DBG )
    {
       va_list args;
       va_start (args, format);
-      fdbgMessage("DBG:", format, args);
+      fdbgMessage("DBG:", func, format, args);
       va_end (args);
    }
 }

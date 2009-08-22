@@ -11,8 +11,11 @@ ffile::ffile()
 
 ffile::~ffile()
 {
-   if ( isOpen() )   /* close the file before desctuct */
+   if ( isOpen() )   /* close the file before destruct */
+   {
+      FINFO( "File was not closed before destruct" );
       close();
+   }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -21,8 +24,11 @@ int ffile::create(const char *fileName)
 {
    setLastError(UNDEFINED);
 
+   FDBG( "Create file %s", fileName );
+
    if ( isOpen() )
    {
+      FINFO( "file already open" );
       if (close()==-1)
       {
       }
@@ -36,6 +42,7 @@ int ffile::create(const char *fileName)
       m_file = fopen( fileName, "w+" );
       if ( m_file == NULL )
       {
+         FERR( "File create failed" );
          setLastError(FILE_CREATE_FAILED);
       }
       else
@@ -51,8 +58,12 @@ int ffile::create(const char *fileName)
 int ffile::open(const char *fileName)
 {
    setLastError(UNDEFINED);
+
+   FDBG( "Open file %s", fileName );
+
    if ( isOpen() )
    {
+      FINFO( "file already open" );
       if (close()==-1)
       {
       }
@@ -66,6 +77,7 @@ int ffile::open(const char *fileName)
       m_file = fopen( fileName, "r+" );
       if ( m_file == NULL )
       {
+         FERR( "Failed to open" );
          setLastError(FILE_OPEN_FAILED);
       }
       else
@@ -85,6 +97,7 @@ int ffile::close(void)
    {
       if (fclose(m_file) != 0)
       {
+         FERR( "Failed to close file" );
          setLastError(FILE_CLOSE_FAILED);
       }
       else
@@ -105,6 +118,7 @@ int ffile::write(const void *buf, const int size)
    written = fwrite(buf, (size_t)size, 1, m_file );
    if ( written != 1 )
    {
+      FERR( "Write failed" );
       setLastError(FILE_WRITE_FAILED);
    } else
    {
