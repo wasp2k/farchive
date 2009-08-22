@@ -17,13 +17,11 @@ void fdbgSetLevel(const FDBG_LEVELS lvl)
 
 /* ------------------------------------------------------------------------- */
 
-static void fdbgMessage(const char *tag, const char *func, const char *format, va_list args )
+static void fdbgMessage(const char *tag, const char *file,const int line,const char *format, va_list args )
 {
    FILE *f;
    f = fopen(FCDBG_FILE, "at+" );
-   fputs( tag, f );
-   fputs( func, f );
-   fputs( ":", f );
+   fprintf( f, "%s:%s(%d):", tag, file, line );
    vfprintf (f, format, args);
    fputs( "\n", f );
    fclose(f);
@@ -31,52 +29,52 @@ static void fdbgMessage(const char *tag, const char *func, const char *format, v
 
 /* ------------------------------------------------------------------------- */
 
-void fdbgErr(const char *func,const char *format, ... )
+void fdbgErr(const char *file,const int line,const char *format, ... )
 {
    if ( g_fcDbgLvl <= FLVL_ERR )
    {
       va_list args;
       va_start (args, format);
-      fdbgMessage("ERR:", func, format, args);
+      fdbgMessage("ERR", file, line, format, args);
       va_end (args);
    }
 }
 
 /* ------------------------------------------------------------------------- */
 
-void fdbgWarn(const char *func,const char *format, ... )
+void fdbgWarn(const char *file,const int line,const char *format, ... )
 {
    if ( g_fcDbgLvl <= FLVL_WARN )
    {
       va_list args;
       va_start (args, format);
-      fdbgMessage("WRN:", func, format, args);
+      fdbgMessage("WRN", file, line, format, args);
       va_end (args);
    }
 }
 
 /* ------------------------------------------------------------------------- */
 
-void fdbgInfo(const char *func,const char *format, ... )
+void fdbgInfo(const char *file,const int line,const char *format, ... )
 {
    if ( g_fcDbgLvl <= FLVL_INFO )
    {
       va_list args;
       va_start (args, format);
-      fdbgMessage("INF:", func, format, args);
+      fdbgMessage("INF", file, line, format, args);
       va_end (args);
    }
 }
 
 /* ------------------------------------------------------------------------- */
 
-void fdbgDbg(const char *func,const char *format, ... )
+void fdbgDbg(const char *file,const int line,const char *format, ... )
 {
    if ( g_fcDbgLvl <= FLVL_DBG )
    {
       va_list args;
       va_start (args, format);
-      fdbgMessage("DBG:", func, format, args);
+      fdbgMessage("DBG", file, line, format, args);
       va_end (args);
    }
 }

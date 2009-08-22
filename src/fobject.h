@@ -23,9 +23,7 @@ private:
 
    OBJECT m_obj;
    char *m_data;
-   unsigned int m_dataSize;
-   bool m_onlyHeader;
-
+   int m_dataSize;
 
    int allocPayload(int size);
    void freePayload(void);
@@ -41,7 +39,7 @@ public:
    virtual ~fobject();
 
    int readHeader(ffile &file);
-   void read(ffile &file);
+   int read(ffile &file);
    int flush(ffile &file);
 
    inline unsigned int getOfs() const{return m_ofs; }

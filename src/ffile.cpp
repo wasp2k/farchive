@@ -136,6 +136,7 @@ int ffile::read(void *buf, const int size)
    read = fread(buf, (size_t)size, 1, m_file );
    if ( read != 1 )
    {
+      FERR( "Read failed" );
       setLastError(FILE_READ_FAILED);
    } else
    {
@@ -151,6 +152,7 @@ int ffile::seek(const int ofs, const ffile::ORIGIN origin)
    setLastError(UNDEFINED);
    if ( fseek( m_file, (long int)ofs, origin ) != 0 )
    {
+      FERR("Seek failed");
       setLastError(FILE_SEEK_FAILED);
    } else
    {
@@ -175,6 +177,7 @@ int ffile::tell(void)
    ofs = ftell( m_file );
    if ( ofs == -1 )
    {
+      FERR("Tell failed");
       setLastError(FILE_TELL_FAILED);
    } else
    {
