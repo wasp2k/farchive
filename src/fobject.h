@@ -58,19 +58,17 @@ public:
    inline void setDirty(){ m_dirty = true; }
 
    void zero();
-
-   template<class X>
-         inline operator X(){ return (X)( (char*)m_data ); }
-
-#if 0
-   inline OBJECT *operator->(){ return (OBJECT*)m_raw; }
-#endif
-
-
-#if 0
-   template<class X>
-         inline X getPtr(){ return NULL; }
-#endif
 };
+
+template<class TYPE>
+class fobjectT : public fobject
+{
+public:
+   fobjectT(void) : fobject( -1, sizeof( TYPE ) ){}
+   fobjectT(long int offset) : fobject( offset, sizeof( TYPE ) ){}
+
+   inline TYPE *operator->(){ return (TYPE*)getPtr(); }
+};
+
 
 #endif // FCOBJECT_H

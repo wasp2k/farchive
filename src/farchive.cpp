@@ -11,7 +11,7 @@
 
   */
 
-const farchive::VERSION farchive::m_version = { { 'F', 'I', 'N', 'D', 'I', 'T' }, 0x0101 };
+const farchive::VERSION farchive::m_version = { { 'f', 'a', 'r', 'c', 'h', 'v' }, 0x0101 };
 
 /* ------------------------------------------------------------------------- */
 
@@ -32,27 +32,37 @@ int farchive::create(const char *fileName)
 {
    setLastError(UNDEFINED);
 
-   m_file.create( fileName );                               /* Create file */
-   m_file.write( &m_version, sizeof( m_version ) );         /* Write file pattern */
+   if ( m_file.create( fileName ) == -1 )                                  /* Create file */
+   {
+   } else
+   {
+      if ( m_file.write( &m_version, sizeof( m_version ) ) == -1 )         /* Write file pattern */
+      {
+      } else
+      {
+         if ( createFileHeader() == -1 )                                   /* create file header */
+         {
+         }
+      }
+      close();                                                             /* Close file */
+   }
 
-   createFileHeader();
-
-   close();                                                 /* Close file */
-
-   open(fileName);                                          /* Open file again */
+   if ( getRetval() != -1)
+   {
+      open(fileName);                                                      /* Open file again */
+   }
 
    return getRetval();
 }
 
 /* ------------------------------------------------------------------------- */
 
-void farchive::createFileHeader(void)
+int farchive::createFileHeader(void)
 {
    m_header.zero();
-#if 0 /* TODO */
    m_header->lastID = 1;
-#endif
    farchive::add(m_header);
+   return 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -89,7 +99,7 @@ int farchive::close(void)
 void farchive::add(fobject &obj)
 {
    obj.setOfs(-1);
-   /*obj.setId( m_header->lastID++ ); TODO */
+   obj.setId( m_header->lastID++ );
    obj.flush(m_file);
 
    m_header.setDirty();

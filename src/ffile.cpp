@@ -157,9 +157,7 @@ int ffile::seek(const int ofs, const ffile::ORIGIN origin)
 int ffile::tell(void)
 {
    long int ofs;
-
    setLastError(UNDEFINED);
-
    ofs = ftell( m_file );
    if ( ofs == -1 )
    {

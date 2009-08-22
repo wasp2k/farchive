@@ -20,13 +20,13 @@ private:
    };
 
    static const VERSION m_version;
-   fobject m_header;
+   fobjectT<HEADER> m_header;
 
 protected:
    ffile m_file;
    fobject m_currObj;
 
-   virtual void createFileHeader(void);
+   virtual int createFileHeader(void);
 
    void moveToOfs(long int ofs);
 

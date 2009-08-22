@@ -34,8 +34,6 @@ public:
     int tell(void);
 
     inline bool isOpen(void){ return m_file != NULL; }
-
-    long int getSize(void);
 };
 
 #endif // FFILE_H
