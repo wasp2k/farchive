@@ -111,11 +111,23 @@ int farchive::close(void)
 
 int farchive::add(fobject &obj)
 {
+   setLastError(UNDEFINED);
+
    obj.setOfs(-1);
    obj.setId( m_header->lastID++ );
-   obj.flush(m_file);
-
-   m_header.flush(m_file);
+   if ( obj.flush(m_file) == -1 )
+   {
+      setLastError(obj);
+   } else
+   {
+      if ( m_header.flush(m_file) == -1 )
+      {
+         setLastError(m_header);
+      } else
+      {
+         setLastError(NO_ERROR);
+      }
+   }
 
    return getStatus();
 }

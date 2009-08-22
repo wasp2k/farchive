@@ -98,23 +98,22 @@ int fobject::readHeader(ffile &file)
       {
          FDBG("FCObject::readHeader id: %d ofs: %d siz: %d", obj.id, m_ofs, obj.size );
 
-         freePayload();
+         freePayload() ;
 
          #if FOBJECT_INCLUDE_DEBUG_PATTEN
          if ( obj.pattern != FOBJECT_PATTERN )
          {
             setLastError(BAD_OBJECT_PATTERN);
-         }
+         } else
          #endif
-
-         if ( getStatus() != -1 )
          {
             m_obj = obj;
+            setLastError(NO_ERROR);
          }
       }
    }
 
-   FERR( "Read header ofs:%d %d", m_ofs, getStatus() );
+   FERR( "Read header ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }
@@ -135,6 +134,12 @@ int fobject::read(ffile &file)
          setLastError(file);
       } else
       {
+         #if FOBJECT_INCLUDE_DEBUG_PATTEN
+         if ( obj.pattern != FOBJECT_PATTERN )
+         {
+            setLastError(BAD_OBJECT_PATTERN);
+         } else
+         #endif
          if ( allocPayload(obj.size) == -1 )
          {
             /* failed */
@@ -146,12 +151,13 @@ int fobject::read(ffile &file)
             } else
             {
                m_obj = obj;
+               setLastError(NO_ERROR);
             }
          }
       }
    }
 
-   FERR( "Read ofs:%d %d", m_ofs, getStatus() );
+   FERR( "Read ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }
@@ -175,22 +181,33 @@ int fobject::flush(ffile &file)
          if (m_ofs == -1)
          {
             m_ofs = file.seek(0, ffile::END );        /* Move to the end of the file */
-
-            FDBG( "Append object %d at: %d", m_obj.id, m_ofs );
-
-            #if FOBJECT_INCLUDE_DEBUG_PATTEN
-            m_obj.pattern = FOBJECT_PATTERN;
-            #endif
-
-            if ( file.write( &m_obj, sizeof( m_obj ) ) == -1 )    /* write object header */
+            if ( m_ofs == -1 )
             {
                setLastError(file);
+            } else
+            {
+               FDBG( "Append object %d at: %d", m_obj.id, m_ofs );
+
+               #if FOBJECT_INCLUDE_DEBUG_PATTEN
+               m_obj.pattern = FOBJECT_PATTERN;
+               #endif
+
+               if ( file.write( &m_obj, sizeof( m_obj ) ) == -1 )    /* write object header */
+               {
+                  setLastError(file);
+               } else
+               {
+                  setLastError(NO_ERROR);
+               }
             }
          } else
          {
             if ( file.seek( m_ofs + sizeof( OBJECT ), ffile::SET ) == -1 ) /* Move to the object offset */
             {
                setLastError(file);
+            } else
+            {
+               setLastError(NO_ERROR);
             }
          }
 
@@ -199,12 +216,15 @@ int fobject::flush(ffile &file)
             if ( file.write( m_data, m_obj.size ) == -1 )            /* write object payload */
             {
                setLastError(file);
+            } else
+            {
+               setLastError(NO_ERROR);
             }
          }
       }
    }
 
-   FERR( "Flush ofs:%d %d", m_ofs, getStatus() );
+   FERR( "Flush ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }
