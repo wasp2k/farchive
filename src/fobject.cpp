@@ -8,14 +8,14 @@
 
 /* ------------------------------------------------------------------------- */
 
-fobject::fobject(long int ofs, unsigned int size)
+fobject::fobject(unsigned int size)
 {
    m_data = NULL;
    m_dataSize = 0;
 
    allocPayload(size);
 
-   m_ofs = ofs;
+   m_ofs = -1;
    m_obj.id = 0;
    m_obj.size = size;
    m_obj.options = 0;

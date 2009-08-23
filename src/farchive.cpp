@@ -34,11 +34,13 @@ int farchive::create(const char *fileName)
    setLastError(UNDEFINED);
    if ( m_file.create( fileName ) == -1 )                                  /* Create file */
    {
+      setLastError(m_file);
       /* failed */
    } else
    {
       if ( m_file.write( &m_version, sizeof( m_version ) ) == -1 )         /* Write file pattern */
       {
+         setLastError(m_file);
          /* failed */
       } else
       {
@@ -56,6 +58,9 @@ int farchive::create(const char *fileName)
    {
       open(fileName);                                                      /* Open file again */
    }
+
+   FDBG( "create file %s (%d)", fileName, getStatus());
+
    return getStatus();
 }
 
@@ -84,27 +89,54 @@ int farchive::open(const char *fileName)
 {
    VERSION ver;
 
-   m_file.open( fileName );                                 /* Open file */
-
-   m_file.read(&ver,sizeof(ver));                           /* Read file pattern */
-   if (memcmp( &ver, &m_version, sizeof( VERSION ) ) != 0)  /* Check file version */
+   if ( m_file.open( fileName ) == -1 )                     /* Open file */
    {
-      /*throw( new FCException( FCException::BAD_ARCHIVE_VERSION ) );*/
+      setLastError(m_file);
+   } else
+   {
+      if ( m_file.read(&ver,sizeof(ver)) == -1 )            /* Read file pattern */
+      {
+         setLastError(m_file);
+      } else
+      {
+         if (memcmp( &ver, &m_version, sizeof( VERSION ) ) != 0)  /* Check file version */
+         {
+            setLastError(BAD_ARCHIVE_VERSION);
+         } else
+         {
+            m_header.setOfs( sizeof( m_version ) );
+            if ( m_header.read(m_file) == -1 )                       /* Read header information */
+            {
+               setLastError(m_header);
+            } else
+            {
+               m_currObj.setOfs(m_header.getOfs());/* Adjust current object */
+               if ( m_currObj.readHeader(m_file) == -1 )
+               {
+                  setLastError(m_currObj);
+               } else
+               {
+                  setLastError(NO_ERROR);
+               }
+            }
+         }
+      }
    }
-   m_header.setOfs( sizeof( m_version ) );
-   m_header.read(m_file);                                    /* Read header information */
+   FDBG( "Open file %s (%d)", fileName, getStatus());
 
-   m_currObj.setOfs(m_header.getOfs());                     /* Adjust current object */
-   m_currObj.readHeader(m_file);
-
-   return -1;
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
 int farchive::close(void)
 {
-   return m_file.close();
+   m_file.close();
+   setLastError(m_file);
+
+   FDBG( "Close file (%d)", getStatus());
+
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -112,7 +144,6 @@ int farchive::close(void)
 int farchive::add(fobject &obj)
 {
    setLastError(UNDEFINED);
-
    obj.setOfs(-1);
    obj.setId( m_header->lastID++ );
    if ( obj.flush(m_file) == -1 )
@@ -129,26 +160,44 @@ int farchive::add(fobject &obj)
       }
    }
 
+   FDBG( "Add Object: %d (%d)", obj.getId(), getStatus());
+
    return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
-void farchive::moveFirst()
+int farchive::moveFirst()
 { 
    m_currObj.setOfs( m_header.getOfs() );
-   m_currObj.readHeader( m_file );
+   if ( m_currObj.readHeader( m_file ) == -1 )
+   {
+      setLastError(m_currObj);
+   } else
+   {
+      setLastError(NO_ERROR);
+   }
+   FDBG( "MoveFirst (%d)", m_currObj.getId(), getStatus());
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
-void farchive::moveNext()
+int farchive::moveNext()
 {
    long int nextOfs;
    nextOfs = m_currObj.getOfs() + m_currObj.getBlockSize();
    m_currObj.setOfs( nextOfs );
-   m_currObj.readHeader( m_file );
-   FDBG( "FCArchive::moveNext Ofs: %d Obj: %d Siz: %d", nextOfs, m_currObj.getOfs(), m_currObj.getSize() );
+
+   if ( m_currObj.readHeader( m_file ) == -1 )
+   {
+      setLastError(m_currObj);
+   } else
+   {
+      setLastError(NO_ERROR);
+   }
+   FDBG( "MoveFirst Ofs: %d Obj: %d Siz: %d (%d)", nextOfs, m_currObj.getOfs(), m_currObj.getSize(), getStatus());
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -157,25 +206,6 @@ void farchive::getObject(fobject &obj)
 {
    obj.setOfs( m_currObj.getOfs() );
    obj.read( m_file );
-}
-
-/* ------------------------------------------------------------------------- */
-
-bool farchive::isEOF(void)
-{
-   bool retVal = false;
-   /* TODO
-   long int fileSize = m_file.getSize();
-   long int nextOfs = m_currObj.getOfs() + m_currObj.getBlockSize();
-
-   if ( nextOfs >= fileSize )
-   {
-      retVal = true;
-   } else
-   {
-      retVal = false;
-   }*/
-   return retVal;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -200,12 +230,7 @@ bool farchive::moveToObject(const unsigned int objId)
          found = true;
          break;
       }
-
-      if ( isEOF() )
-         break;
-
       moveNext();
-
    } while( 1 );
    return found;
 }

@@ -20,6 +20,7 @@ public:
       FILE_SEEK_FAILED,
       FILE_SEEK_SYNC_FAILED,
       FILE_TELL_FAILED,
+      FILE_EOF,
 
       /* FC Archive codes */
       BAD_ARCHIVE_VERSION,

@@ -133,14 +133,21 @@ int ffile::read(void *buf, const int size)
 {
    size_t read;
    setLastError(UNDEFINED);
-   read = fread(buf, (size_t)size, 1, m_file );
-   if ( read != 1 )
+
+   if ( feof(m_file) != 0 )
    {
-      FERR( "Read failed" );
-      setLastError(FILE_READ_FAILED);
+      setLastError(FILE_EOF);
    } else
    {
-      setLastError(NO_ERROR);
+      read = fread(buf, (size_t)size, 1, m_file );
+      if ( read != 1 )
+      {
+         FERR( "Read failed" );
+         setLastError(FILE_READ_FAILED);
+      } else
+      {
+         setLastError(NO_ERROR);
+      }
    }
    return getStatus();
 }
@@ -184,6 +191,13 @@ int ffile::tell(void)
       setLastError(NO_ERROR);
    }
    return getStatus((int)ofs);
+}
+
+/* ------------------------------------------------------------------------- */
+
+int ffile::isEOF(void)
+{
+   return (feof(m_file)!=0);
 }
 
 /* ------------------------------------------------------------------------- */

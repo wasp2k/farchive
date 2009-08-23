@@ -38,14 +38,12 @@ public:
    virtual int open(const char *fileName);
    virtual int close(void);
 
-   virtual void moveFirst(void);
-   virtual void moveNext(void);
+   virtual int moveFirst(void);
+   virtual int moveNext(void);
 
    virtual bool moveToObject(const unsigned int objId);
 
    virtual void getObject(fobject &obj);
-
-   virtual bool isEOF(void);
 
    virtual int add(fobject &obj);
 

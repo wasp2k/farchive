@@ -35,7 +35,7 @@ public:
    };
 
 public:
-   fobject(long int ofs = -1, unsigned int size = 0);
+   fobject(unsigned int size = 0);
    virtual ~fobject();
 
    int readHeader(ffile &file);
@@ -63,8 +63,7 @@ template<class TYPE>
 class fobjectT : public fobject
 {
 public:
-   fobjectT(void) : fobject( -1, sizeof( TYPE ) ){}
-   fobjectT(long int offset) : fobject( offset, sizeof( TYPE ) ){}
+   fobjectT(void) : fobject( sizeof( TYPE ) ){}
 
    inline TYPE *operator->(){ return (TYPE*)getPtr(); }
 };

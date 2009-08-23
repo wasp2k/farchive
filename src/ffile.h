@@ -34,6 +34,8 @@ public:
     int tell(void);
 
     inline bool isOpen(void){ return m_file != NULL; }
+
+    int isEOF(void);
 };
 
 #endif // FFILE_H
