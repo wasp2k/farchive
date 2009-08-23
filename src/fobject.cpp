@@ -172,53 +172,48 @@ int fobject::flush(ffile &file)
       setLastError(BAD_FILE_OBJECT);
    } else
    {
-      if (m_data == NULL)
+      if (m_ofs == -1)
       {
-         setLastError(BAD_OBJECT_PAYLOAD);
-         FDBG( "Bad payload" );
+         m_ofs = file.seek(0, ffile::END );        /* Move to the end of the file */
+         if ( m_ofs == -1 )
+         {
+            setLastError(file);
+         } else
+         {
+            FDBG( "Append object %d at: %d", m_obj.id, m_ofs );
+            setLastError(NO_ERROR);
+         }
       } else
       {
-         if (m_ofs == -1)
+         if ( file.seek( m_ofs, ffile::SET ) == -1 ) /* Move to the object offset */
          {
-            m_ofs = file.seek(0, ffile::END );        /* Move to the end of the file */
-            if ( m_ofs == -1 )
-            {
-               setLastError(file);
-            } else
-            {
-               FDBG( "Append object %d at: %d", m_obj.id, m_ofs );
+            setLastError(file);
+         } else
+         {
+            setLastError(NO_ERROR);
+         }
+      }
 
-               #if FOBJECT_INCLUDE_DEBUG_PATTEN
-               m_obj.pattern = FOBJECT_PATTERN;
-               #endif
+      if (getStatus()!=-1)
+      {
+         #if FOBJECT_INCLUDE_DEBUG_PATTEN
+         m_obj.pattern = FOBJECT_PATTERN;
+         #endif
 
-               if ( file.write( &m_obj, sizeof( m_obj ) ) == -1 )    /* write object header */
+         if ( file.write( &m_obj, sizeof( m_obj ) ) == -1 )    /* write object header */
+         {
+            setLastError(file);
+         } else
+         {
+            if (m_data != NULL)
+            {
+               if ( file.write( m_data, m_obj.size ) == -1 )            /* write object payload */
                {
                   setLastError(file);
                } else
                {
                   setLastError(NO_ERROR);
                }
-            }
-         } else
-         {
-            if ( file.seek( m_ofs + sizeof( OBJECT ), ffile::SET ) == -1 ) /* Move to the object offset */
-            {
-               setLastError(file);
-            } else
-            {
-               setLastError(NO_ERROR);
-            }
-         }
-
-         if (getStatus()!=-1)
-         {
-            if ( file.write( m_data, m_obj.size ) == -1 )            /* write object payload */
-            {
-               setLastError(file);
-            } else
-            {
-               setLastError(NO_ERROR);
             }
          }
       }

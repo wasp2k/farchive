@@ -34,6 +34,12 @@ public:
       REMOVED  = 0x00000001
    };
 
+
+protected:
+   inline void setOfs(long int ofs){ m_ofs = ofs; }
+   void setId(unsigned int id);
+   void setOptions(unsigned int options);
+
 public:
    fobject(unsigned int size = 0);
    virtual ~fobject();
@@ -43,13 +49,10 @@ public:
    int flush(ffile &file);
 
    inline unsigned int getOfs() const{return m_ofs; }
-   inline void setOfs(long int ofs){ m_ofs = ofs; }
 
    inline unsigned int getId() const {return m_obj.id; }
-   void setId(unsigned int id);
 
    inline unsigned int getOptions() const {return m_obj.options; }
-   void setOptions(unsigned int options);
 
    inline unsigned int getSize(){return m_obj.size; }
    inline unsigned int getBlockSize(){ return m_obj.size + sizeof( OBJECT ); }
@@ -57,6 +60,8 @@ public:
    inline void *getPtr(){ return m_data; }
 
    void zero();
+
+   friend class farchive;
 };
 
 template<class TYPE>

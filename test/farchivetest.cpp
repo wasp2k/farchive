@@ -34,6 +34,25 @@ int main(int /*argc*/, char */*argv*/[])
       }
    } while( f.moveNext() != -1 );
 
+   if ( f.moveTo(5) != -1 )
+   {
+      if ( f.getObject(obj) != -1 )
+      {
+         printf( "Obj move: id: %d ofs: %d\n", obj.getId(), obj.getOfs() );
+
+         f.remove(obj.getId());
+      }
+   }
+
+   f.moveFirst();
+   do
+   {
+      if ( f.getObject(obj) != -1 )
+      {
+         printf( "Obj read: id: %d ofs: %d\n", obj.getId(), obj.getOfs() );
+      }
+   } while( f.moveNext() != -1 );
+
    f.close();
 
 

@@ -186,19 +186,33 @@ int farchive::moveFirst()
 
 int farchive::moveNext()
 {
+   int repeat;
    long int nextOfs;
    setLastError(UNDEFINED);
-   nextOfs = m_currObj.getOfs() + m_currObj.getBlockSize();
-   m_currObj.setOfs( nextOfs );
 
-   if ( m_currObj.readHeader( m_file ) == -1 )
+   do
    {
-      setLastError(m_currObj);
-   } else
-   {
-      setLastError(NO_ERROR);
-   }
-   FDBG( "moveNext Ofs: %d Obj: %d Siz: %d (%d)", nextOfs, m_currObj.getOfs(), m_currObj.getSize(), getLastError());
+      repeat = 0;
+      nextOfs = m_currObj.getOfs() + m_currObj.getBlockSize();
+      m_currObj.setOfs( nextOfs );
+
+      if ( m_currObj.readHeader( m_file ) == -1 )
+      {
+         setLastError(m_currObj);
+      } else
+      {
+         setLastError(NO_ERROR);
+      }
+      FDBG( "moveNext Ofs: %d Obj: %d Siz: %d (%d)", nextOfs, m_currObj.getOfs(), m_currObj.getSize(), getLastError());
+
+      if ( getStatus() != -1 )
+      {
+         if ( m_currObj.getId() == 0 )    /* Removed object detected, move to the next object again */
+         {
+            repeat = 1;
+         }
+      }
+   } while( repeat != 0 );
    return getStatus();
 }
 
@@ -220,44 +234,70 @@ int farchive::getObject(fobject &obj)
 
 /* ------------------------------------------------------------------------- */
 
-void farchive::moveToOfs(long int ofs)
-{
-   setLastError(UNDEFINED);
-   m_currObj.setOfs( ofs );
-   m_currObj.readHeader( m_file );
-   FDBG( "FCArchive::moveToOfs Ofs: %d Obj: %d Siz: %d", ofs, m_currObj.getOfs(), m_currObj.getSize() );
-}
-
-/* ------------------------------------------------------------------------- */
-
-bool farchive::moveToObject(const unsigned int objId)
+int farchive::moveTo(const unsigned int objId)
 {
    bool found = false;
-   moveFirst();
-   do
+   setLastError(UNDEFINED);
+   if ( m_currObj.getId() == objId )
    {
-      if  ( m_currObj.getId() == objId )
+      found = true;
+   } else
+   {
+      if ( moveFirst() == -1 )
       {
-         found = true;
-         break;
+         /* failed */
+      } else
+      {
+         do
+         {
+            if  ( m_currObj.getId() == objId )
+            {
+               found = true;
+               break;
+            }
+            moveNext();
+         } while( getStatus() != -1 );
       }
-      moveNext();
-   } while( 1 );
-   return found;
+   }
+
+   if ( found == true )
+   {
+      FDBG( "moveToObject id: %d at: %d", objId, m_currObj.getOfs() );
+      setLastError(NO_ERROR);
+   } else
+   {
+      FWARN( "moveToObject id: %d not found", objId );
+   }
+
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
-bool farchive::remove(const unsigned int objId)
+int farchive::remove(const unsigned int objId)
 {
-   bool found;
-   found = moveToObject(objId);
-   if ( found )
+   setLastError(UNDEFINED);
+
+   if ( moveTo(objId) != -1 )
    {
       m_currObj.setId(0);
-      m_currObj.flush(m_file);
+      if ( m_currObj.flush(m_file) == -1 )
+      {
+         setLastError(m_currObj);
+      } else
+      {
+         setLastError(NO_ERROR);
+      }
    }
-   return found;
+
+   if ( getStatus() != -1 )
+   {
+      FDBG( "remove obj id: %d ofs: %d", objId, m_currObj.getOfs() );
+   } else
+   {
+      FERR( "remove obj id: %d failed", objId );
+   }
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */

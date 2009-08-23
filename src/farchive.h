@@ -29,8 +29,6 @@ protected:
 
    virtual int createFileHeader(void);
 
-   void moveToOfs(long int ofs);
-
 public:
    farchive();
    virtual ~farchive();
@@ -42,13 +40,13 @@ public:
    virtual int moveFirst(void);
    virtual int moveNext(void);
 
-   virtual bool moveToObject(const unsigned int objId);
+   virtual int moveTo(const unsigned int objId);
 
    virtual int getObject(fobject &obj);
 
    virtual int add(fobject &obj);
 
-   virtual bool remove(const unsigned int objId);
+   virtual int remove(const unsigned int objId);
 };
 
 #endif // FARCHIVE_H
