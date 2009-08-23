@@ -113,7 +113,7 @@ int fobject::readHeader(ffile &file)
       }
    }
 
-   FERR( "Read header ofs:%d %d", m_ofs, getLastError() );
+   FDBG( "Read header ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }
@@ -157,7 +157,7 @@ int fobject::read(ffile &file)
       }
    }
 
-   FERR( "Read ofs:%d %d", m_ofs, getLastError() );
+   FDBG( "Read ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }
@@ -224,7 +224,7 @@ int fobject::flush(ffile &file)
       }
    }
 
-   FERR( "Flush ofs:%d %d", m_ofs, getLastError() );
+   FDBG( "Flush ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }

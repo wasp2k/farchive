@@ -31,7 +31,7 @@ static void fdbgMessage(const char *tag, const char *file,const int line,const c
 
 void fdbgErr(const char *file,const int line,const char *format, ... )
 {
-   if ( g_fcDbgLvl <= FLVL_ERR )
+   if ( g_fcDbgLvl >= FLVL_ERR )
    {
       va_list args;
       va_start (args, format);
@@ -44,7 +44,7 @@ void fdbgErr(const char *file,const int line,const char *format, ... )
 
 void fdbgWarn(const char *file,const int line,const char *format, ... )
 {
-   if ( g_fcDbgLvl <= FLVL_WARN )
+   if ( g_fcDbgLvl >= FLVL_WARN )
    {
       va_list args;
       va_start (args, format);
@@ -57,7 +57,7 @@ void fdbgWarn(const char *file,const int line,const char *format, ... )
 
 void fdbgInfo(const char *file,const int line,const char *format, ... )
 {
-   if ( g_fcDbgLvl <= FLVL_INFO )
+   if ( g_fcDbgLvl >= FLVL_INFO )
    {
       va_list args;
       va_start (args, format);
@@ -70,7 +70,7 @@ void fdbgInfo(const char *file,const int line,const char *format, ... )
 
 void fdbgDbg(const char *file,const int line,const char *format, ... )
 {
-   if ( g_fcDbgLvl <= FLVL_DBG )
+   if ( g_fcDbgLvl >= FLVL_DBG )
    {
       va_list args;
       va_start (args, format);

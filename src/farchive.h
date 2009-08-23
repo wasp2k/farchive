@@ -10,7 +10,8 @@ class farchive : ferror
 private:
    struct VERSION
    {
-      char pattern[6];
+      char pattern[5];
+      char dummy;
       unsigned short version;
    };
 
@@ -43,7 +44,7 @@ public:
 
    virtual bool moveToObject(const unsigned int objId);
 
-   virtual void getObject(fobject &obj);
+   virtual int getObject(fobject &obj);
 
    virtual int add(fobject &obj);
 
