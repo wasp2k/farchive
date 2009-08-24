@@ -62,6 +62,7 @@ public:
    void zero();
 
    friend class farchive;
+   friend class farchiveidx;
 };
 
 template<class TYPE>

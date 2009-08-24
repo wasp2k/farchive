@@ -5,7 +5,7 @@
 #include "ffile.h"
 #include "fobject.h"
 
-class farchive : ferror
+class farchive : public ferror
 {
 private:
    struct VERSION
