@@ -7,16 +7,16 @@
 
 class farchiveidx : public farchive
 {
-   struct ITEM
+   struct ITEM                            /* Index item */
    {
-      unsigned long id;
-      long int ofs;
-      unsigned long options;
+      unsigned int id;
+      int ofs;
+      unsigned int options;
    };
 
-   struct INDEX
+   struct INDEX                           /* Index structure */
    {
-      ITEM   records[ FINDEX_SIZE + 1 ];
+      ITEM   items[ FINDEX_SIZE + 1 ];
       long int nextObjId;
    };
 
@@ -28,10 +28,10 @@ class farchiveidx : public farchive
 
    DATA *m_firstData;
 
-   bool findObject(const unsigned int objId, DATA *(&data), int &dataIdx );
-   void registerIndex(const fobject &obj);
+   int findObject(const unsigned int objId, DATA *(&data), int &dataIdx );
+   int registerIndex(const fobject &obj);
 
-   void readIndex(void);
+   int readIndex(void);
 
    void freeIndex(void);
 
@@ -51,6 +51,8 @@ public:
    virtual int moveTo(const unsigned int objId);
 
    virtual int add(fobject &obj);
+
+   virtual int remove(const unsigned int objId);
 };
 
 #endif // FARCHIVEIDX_H

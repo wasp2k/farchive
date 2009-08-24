@@ -1,6 +1,8 @@
 #ifndef FERROR_H
 #define FERROR_H
 
+#include "fdbg.h"
+
 class ferror
 {
 public:
@@ -34,6 +36,8 @@ public:
       BAD_INDEX_OBJECT,
       BAD_INDEX_POOL,
       EXPAND_INDEX_FAILED,
+      OBJECT_NOT_FOUND,
+
 
       LAST_CODE
    };
@@ -49,7 +53,14 @@ public:
    inline void setLastError(ERRORCODE lastError){ m_lastError = lastError; }
    inline void setLastError(const ferror &error){ m_lastError = error.getLastError(); }
 
-   inline int getStatus(int retValue=0) const { return ((m_lastError == NO_ERROR) ? retValue : -1); }
+   inline int getStatus(int retValue=0) const
+   {
+      if ( m_lastError != NO_ERROR )
+      {
+         FINFO( "getStatus %d", m_lastError );
+      }
+      return ((m_lastError == NO_ERROR) ? retValue : -1);
+   }
 };
 
 #endif // FERROR_H

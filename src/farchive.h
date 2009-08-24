@@ -37,6 +37,8 @@ public:
    virtual int open(const char *fileName);
    virtual int close(void);
 
+   virtual int isOpen(void);
+
    virtual int moveFirst(void);
    virtual int moveNext(void);
 

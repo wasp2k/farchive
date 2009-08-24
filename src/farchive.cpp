@@ -24,7 +24,10 @@ farchive::farchive()
 
 farchive::~farchive()
 {
-   close();
+   if ( isOpen() )
+   {
+      close();
+   }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -301,3 +304,11 @@ int farchive::remove(const unsigned int objId)
 }
 
 /* ------------------------------------------------------------------------- */
+
+int farchive::isOpen(void)
+{
+   int open;
+   open = m_file.isOpen() != false;
+   setLastError(NO_ERROR);
+   return getStatus(open);
+}

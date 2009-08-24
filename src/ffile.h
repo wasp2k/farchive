@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
-#include "ferror.h"
 #include "fdbg.h"
+#include "ferror.h"
 
 class ffile : public ferror
 {

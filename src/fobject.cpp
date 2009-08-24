@@ -145,7 +145,7 @@ int fobject::read(ffile &file)
             /* failed */
          } else
          {
-            if ( file.read(m_data, m_obj.size) == -1 )          /* Read object payload */
+            if ( file.read(m_data, obj.size) == -1 )          /* Read object payload */
             {
                setLastError(file);
             } else
