@@ -15,12 +15,17 @@ class fmem : public ferror
 
     int realloc(int size);
 
+    farchive &m_arch;
+
 public:
-    fmem();
+    fmem(farchive &arch);
     virtual ~fmem();
 
+    void *map(void);
+    void unmap(void);
 
     int setSize(int size);
+    int getSize(void);
 
     int free();
 };

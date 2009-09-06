@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "farchiveidx.h"
+#include "fmem.h"
 
 struct DATA
 {
@@ -8,8 +10,32 @@ struct DATA
    int b;
 };
 
+void test_fmem()
+{
+   farchive f;
+   fmem m(f);
+
+   f.create("test.arc");
+
+   m.setSize(1024);
+
+   char *p = (char*)m.map();
+
+   if ( p!= NULL )
+   {
+      memset( p, 0xaa, m.getSize() );
+   }
+
+   m.unmap();
+   f.close();
+}
+
 int main(int /*argc*/, char */*argv*/[])
 {
+   test_fmem();
+
+
+#if 0
    fobjectT<DATA> obj;
 
    farchiveidx f;
@@ -54,7 +80,7 @@ int main(int /*argc*/, char */*argv*/[])
    } while( f.moveNext() != -1 );
 
    f.close();
-
+#endif
 
    return 0;
 }

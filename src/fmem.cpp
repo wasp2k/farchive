@@ -4,7 +4,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-fmem::fmem()
+fmem::fmem(farchive &arch) : m_arch( arch )
 {
    m_lockCnt = 0;
    m_dataPtr = 0;
@@ -34,6 +34,25 @@ int fmem::setSize(int size)
 }
 
 /* ------------------------------------------------------------------------- */
+
+int fmem::getSize(void)
+{
+   int retVal = 0;
+   setLastError(UNDEFINED);
+
+   if ( m_dataPtr == NULL )
+   {
+      setLastError(BAD_OBJECT_PAYLOAD);
+   } else
+   {
+      retVal = *m_lenPtr;
+      setLastError(NO_ERROR);
+   }
+   return getStatus(retVal);
+}
+
+/* ------------------------------------------------------------------------- */
+
 int fmem::realloc(int size)
 {
    void *dataPtr;
@@ -84,6 +103,46 @@ int fmem::free()
    }
    setLastError(NO_ERROR);
    return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+void *fmem::map(void)
+{
+   void *retVal = NULL;
+   setLastError(UNDEFINED);
+
+   if ( m_dataPtr == NULL )
+   {
+      setLastError(BAD_OBJECT_PAYLOAD);
+   } else
+   {
+      if ( m_lockCnt >= 1024 )
+      {
+         setLastError(OBJECT_TOO_MANY_LOCKS);
+      } else
+      {
+         m_lockCnt++;
+         retVal = (void*)((int*)m_dataPtr + 1);
+         setLastError(NO_ERROR);
+      }
+   }
+   return retVal;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void fmem::unmap(void)
+{
+   setLastError(UNDEFINED);
+   if ( m_lockCnt == 0 )
+   {
+      setLastError(OBJECT_NOT_LOCKED);
+   } else
+   {
+      m_lockCnt--;
+      setLastError(NO_ERROR);
+   }
 }
 
 /* ------------------------------------------------------------------------- */

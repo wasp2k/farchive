@@ -41,6 +41,8 @@ public:
 
       /* fmem */
       OBJECT_LOCKED,
+      OBJECT_TOO_MANY_LOCKS,
+      OBJECT_NOT_LOCKED,
 
 
       LAST_CODE
