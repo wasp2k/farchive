@@ -19,6 +19,7 @@ fobject::fobject(unsigned int size)
    m_obj.id = 0;
    m_obj.size = size;
    m_obj.options = 0;
+   m_obj.chainId = 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -240,9 +241,17 @@ void fobject::setOptions(unsigned int options)
 
 /* ------------------------------------------------------------------------- */
 
+void fobject::setChainId(unsigned int chainId)
+{
+    m_obj.chainId = chainId;
+}
+
+/* ------------------------------------------------------------------------- */
+
 void fobject::zero()
 {
    memset( m_data, 0, m_obj.size );
 }
 
 /* ------------------------------------------------------------------------- */
+

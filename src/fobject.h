@@ -19,6 +19,7 @@ private:
       unsigned int id;
       unsigned int size;
       unsigned int options;
+      unsigned int chainId;     /* Id of the next object */
    };
 
    OBJECT m_obj;
@@ -28,17 +29,11 @@ private:
    int allocPayload(int size);
    void freePayload(void);
 
-public:
-   enum
-   {
-      REMOVED  = 0x00000001
-   };
-
-
 protected:
    inline void setOfs(long int ofs){ m_ofs = ofs; }
    void setId(unsigned int id);
    void setOptions(unsigned int options);
+   void setChainId(unsigned int chainId);
 
 public:
    fobject(unsigned int size = 0);
@@ -53,6 +48,8 @@ public:
    inline unsigned int getId() const {return m_obj.id; }
 
    inline unsigned int getOptions() const {return m_obj.options; }
+
+   inline unsigned int getChainId() const {return m_obj.chainId; }
 
    inline unsigned int getSize(){return m_obj.size; }
    inline unsigned int getBlockSize(){ return m_obj.size + sizeof( OBJECT ); }
