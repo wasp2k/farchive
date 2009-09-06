@@ -25,19 +25,21 @@ public:
       FILE_TELL_FAILED,
       FILE_EOF,
 
-      /* FC Archive codes */
+      /* farchive */
       BAD_ARCHIVE_VERSION,
 
-      /* FC Object */
+      /* fobject */
       BAD_OBJECT_PAYLOAD,
       BAD_OBJECT_PATTERN,
       BAD_FILE_OBJECT,
 
-      /* FC Indexed Archive */
+      /* farchiveidx */
       BAD_INDEX_OBJECT,
       BAD_INDEX_POOL,
       EXPAND_INDEX_FAILED,
       OBJECT_NOT_FOUND,
+
+      /* fmem */
 
 
       LAST_CODE
