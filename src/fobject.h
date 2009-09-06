@@ -19,7 +19,7 @@ private:
       unsigned int id;
       unsigned int size;
       unsigned int options;
-      unsigned int chainId;     /* Id of the next object */
+      unsigned int nextChain;     /* Id of the next object */
    };
 
    OBJECT m_obj;
@@ -33,7 +33,7 @@ protected:
    inline void setOfs(long int ofs){ m_ofs = ofs; }
    void setId(unsigned int id);
    void setOptions(unsigned int options);
-   void setChainId(unsigned int chainId);
+   void setNextChain(unsigned int nextChain);
 
 public:
    fobject(unsigned int size = 0);
@@ -41,7 +41,9 @@ public:
 
    int readHeader(ffile &file);
    int read(ffile &file);
+   int read(ffile &file, void *buf);
    int flush(ffile &file);
+   int flush(ffile &file, void *buf);
 
    inline unsigned int getOfs() const{return m_ofs; }
 
@@ -49,7 +51,7 @@ public:
 
    inline unsigned int getOptions() const {return m_obj.options; }
 
-   inline unsigned int getChainId() const {return m_obj.chainId; }
+   inline unsigned int getNextChain() const {return m_obj.nextChain; }
 
    inline unsigned int getSize(){return m_obj.size; }
    inline unsigned int getBlockSize(){ return m_obj.size + sizeof( OBJECT ); }

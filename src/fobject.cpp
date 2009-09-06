@@ -19,7 +19,7 @@ fobject::fobject(unsigned int size)
    m_obj.id = 0;
    m_obj.size = size;
    m_obj.options = 0;
-   m_obj.chainId = 0;
+   m_obj.nextChain = 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -85,6 +85,8 @@ int fobject::readHeader(ffile &file)
 
    setLastError(UNDEFINED);
 
+   freePayload();
+
    file.seek(m_ofs,ffile::SET);                                /* Seek to the offset */
    if ( file.getStatus() == -1 )
    {
@@ -98,8 +100,6 @@ int fobject::readHeader(ffile &file)
       } else
       {
          FDBG("FCObject::readHeader id: %d ofs: %d siz: %d", obj.id, m_ofs, obj.size );
-
-         freePayload() ;
 
          #if FOBJECT_INCLUDE_DEBUG_PATTEN
          if ( obj.pattern != FOBJECT_PATTERN )
@@ -159,6 +159,52 @@ int fobject::read(ffile &file)
    }
 
    FDBG( "Read ofs:%d %d", m_ofs, getLastError() );
+
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fobject::read(ffile &file, void *buf)
+{
+   OBJECT obj;
+
+   freePayload();
+
+   if ( file.seek(m_ofs,ffile::SET) == -1)                             /* Seek to the offset */
+   {
+      setLastError(file);
+   } else
+   {
+      if ( file.read(&obj, sizeof(obj)) == -1 )                                     /* Read object header */
+      {
+         setLastError(file);
+      } else
+      {
+         #if FOBJECT_INCLUDE_DEBUG_PATTEN
+         if ( obj.pattern != FOBJECT_PATTERN )
+         {
+            setLastError(BAD_OBJECT_PATTERN);
+         } else
+         #endif
+         if ( buf == NULL )
+         {
+            setLastError(BAD_PARAMETER);
+         } else
+         {
+            if ( file.read(buf, obj.size) == -1 )          /* Read object payload */
+            {
+               setLastError(file);
+            } else
+            {
+               m_obj = obj;
+               setLastError(NO_ERROR);
+            }
+         }
+      }
+   }
+
+   FDBG( "Read ofs:%d ptr: %p %d", m_ofs, buf, getLastError() );
 
    return getStatus();
 }
@@ -227,6 +273,74 @@ int fobject::flush(ffile &file)
 
 /* ------------------------------------------------------------------------- */
 
+int fobject::flush(ffile &file, void *buf)
+{
+   setLastError(UNDEFINED);
+
+   freePayload();
+
+   if (!file.isOpen())
+   {
+      setLastError(BAD_FILE_OBJECT);
+   } else
+   {
+      if (m_ofs == -1)
+      {
+         m_ofs = file.seek(0, ffile::END );        /* Move to the end of the file */
+         if ( m_ofs == -1 )
+         {
+            setLastError(file);
+         } else
+         {
+            FDBG( "Append object %d at: %d", m_obj.id, m_ofs );
+            setLastError(NO_ERROR);
+         }
+      } else
+      {
+         if ( file.seek( m_ofs, ffile::SET ) == -1 ) /* Move to the object offset */
+         {
+            setLastError(file);
+         } else
+         {
+            setLastError(NO_ERROR);
+         }
+      }
+
+      if (getStatus()!=-1)
+      {
+         #if FOBJECT_INCLUDE_DEBUG_PATTEN
+         m_obj.pattern = FOBJECT_PATTERN;
+         #endif
+
+         if ( file.write( &m_obj, sizeof( m_obj ) ) == -1 )    /* write object header */
+         {
+            setLastError(file);
+         } else
+         {
+            if (buf == NULL)
+            {
+                setLastError(BAD_PARAMETER);
+            } else
+            {
+               if ( file.write( m_data, m_obj.size ) == -1 )            /* write object payload */
+               {
+                  setLastError(file);
+               } else
+               {
+                  setLastError(NO_ERROR);
+               }
+            }
+         }
+      }
+   }
+
+   FDBG( "Flush ofs:%d %d", m_ofs, getLastError() );
+
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
 void fobject::setId(unsigned int id)
 {
    m_obj.id = id;
@@ -241,9 +355,9 @@ void fobject::setOptions(unsigned int options)
 
 /* ------------------------------------------------------------------------- */
 
-void fobject::setChainId(unsigned int chainId)
+void fobject::setNextChain(unsigned int nextChain)
 {
-    m_obj.chainId = chainId;
+    m_obj.nextChain = nextChain;
 }
 
 /* ------------------------------------------------------------------------- */

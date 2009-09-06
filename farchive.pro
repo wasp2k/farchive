@@ -13,12 +13,10 @@ SOURCES += src/ffile.cpp \
     src/fdbg.cpp \
     src/farchive.cpp \
     src/fobject.cpp \
-    src/farchiveidx.cpp \
-    fmem.cpp
+    src/farchiveidx.cpp
 HEADERS += src/ffile.h \
     src/ferror.h \
     src/fdbg.h \
     src/farchive.h \
     src/fobject.h \
-    src/farchiveidx.h \
-    fmem.h
+    src/farchiveidx.h

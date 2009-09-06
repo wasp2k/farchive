@@ -12,6 +12,7 @@ public:
       NO_ERROR,
 
       ALLOC_FAILED,
+      BAD_PARAMETER,
 
       /* FC File error codes */
       FILE_OPEN_FAILED,
