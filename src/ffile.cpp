@@ -13,7 +13,7 @@ ffile::~ffile()
 {
    if ( isOpen() )   /* close the file before destruct */
    {
-      FINFO( "File was not closed before destruct" );
+      FINFO0( "File was not closed before destruct" );
       close();
    }
 }
@@ -24,11 +24,11 @@ int ffile::create(const char *fileName)
 {
    setLastError(UNDEFINED);
 
-   FDBG( "Create file %s", fileName );
+   FDBG1( "Create file %s", fileName );
 
    if ( isOpen() )
    {
-      FINFO( "file already open" );
+      FINFO0( "file already open" );
       if (close()==-1)
       {
       }
@@ -42,7 +42,7 @@ int ffile::create(const char *fileName)
       m_file = fopen( fileName, "w+" );
       if ( m_file == NULL )
       {
-         FERR( "File create failed" );
+         FERR0( "File create failed" );
          setLastError(FILE_CREATE_FAILED);
       }
       else
@@ -59,11 +59,11 @@ int ffile::open(const char *fileName)
 {
    setLastError(UNDEFINED);
 
-   FDBG( "Open file %s", fileName );
+   FDBG1( "Open file %s", fileName );
 
    if ( isOpen() )
    {
-      FINFO( "file already open" );
+      FINFO0( "file already open" );
       if (close()==-1)
       {
       }
@@ -77,7 +77,7 @@ int ffile::open(const char *fileName)
       m_file = fopen( fileName, "r+" );
       if ( m_file == NULL )
       {
-         FERR( "Failed to open" );
+         FERR0( "Failed to open" );
          setLastError(FILE_OPEN_FAILED);
       }
       else
@@ -97,7 +97,7 @@ int ffile::close(void)
    {
       if (fclose(m_file) != 0)
       {
-         FERR( "Failed to close file" );
+         FERR0( "Failed to close file" );
          setLastError(FILE_CLOSE_FAILED);
       }
       else
@@ -118,7 +118,7 @@ int ffile::write(const void *buf, const int size)
    written = fwrite(buf, (size_t)size, 1, m_file );
    if ( written != 1 )
    {
-      FERR( "Write failed" );
+      FERR0( "Write failed" );
       setLastError(FILE_WRITE_FAILED);
    } else
    {
@@ -139,11 +139,11 @@ int ffile::read(void *buf, const int size)
    {
       if ( feof(m_file) != 0 )
       {
-         FDBG( "EOF reached" );
+         FDBG0( "EOF reached" );
          setLastError(FILE_EOF);
       } else
       {
-         FERR( "Read failed" );
+         FERR0( "Read failed" );
          setLastError(FILE_READ_FAILED);
       }
    } else
@@ -160,7 +160,7 @@ int ffile::seek(const int ofs, const ffile::ORIGIN origin)
    setLastError(UNDEFINED);
    if ( fseek( m_file, (long int)ofs, origin ) != 0 )
    {
-      FERR("Seek failed");
+      FERR0("Seek failed");
       setLastError(FILE_SEEK_FAILED);
    } else
    {
@@ -185,7 +185,7 @@ int ffile::tell(void)
    ofs = ftell( m_file );
    if ( ofs == -1 )
    {
-      FERR("Tell failed");
+      FERR0("Tell failed");
       setLastError(FILE_TELL_FAILED);
    } else
    {

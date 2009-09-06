@@ -40,6 +40,7 @@ public:
       OBJECT_NOT_FOUND,
 
       /* fmem */
+      OBJECT_LOCKED,
 
 
       LAST_CODE
@@ -60,7 +61,7 @@ public:
    {
       if ( m_lastError != NO_ERROR )
       {
-         FINFO( "getStatus %d", m_lastError );
+         FINFO1( "getStatus %d", m_lastError );
       }
       return ((m_lastError == NO_ERROR) ? retValue : -1);
    }

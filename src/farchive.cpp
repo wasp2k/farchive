@@ -62,7 +62,7 @@ int farchive::create(const char *fileName)
       open(fileName);                                                      /* Open file again */
    }
 
-   FDBG( "create file %s (%d)", fileName, getLastError());
+   FDBG2( "create file %s (%d)", fileName, getLastError());
 
    return getStatus();
 }
@@ -125,7 +125,7 @@ int farchive::open(const char *fileName)
          }
       }
    }
-   FDBG( "Open file %s (%d)", fileName, getLastError());
+   FDBG2( "Open file %s (%d)", fileName, getLastError());
 
    return getStatus();
 }
@@ -137,7 +137,7 @@ int farchive::close(void)
    m_file.close();
    setLastError(m_file);
 
-   FDBG( "Close file (%d)", getLastError());
+   FDBG1( "Close file (%d)", getLastError());
 
    return getStatus();
 }
@@ -163,7 +163,7 @@ int farchive::add(fobject &obj)
       }
    }
 
-   FDBG( "Add Object: %d (%d)", obj.getId(), getLastError());
+   FDBG2( "Add Object: %d (%d)", obj.getId(), getLastError());
 
    return getStatus();
 }
@@ -181,7 +181,7 @@ int farchive::moveFirst()
    {
       setLastError(NO_ERROR);
    }
-   FDBG( "MoveFirst (%d)", m_currObj.getId(), getLastError());
+   FDBG2( "MoveFirst (%d)", m_currObj.getId(), getLastError());
    return getStatus();
 }
 
@@ -206,7 +206,7 @@ int farchive::moveNext()
       {
          setLastError(NO_ERROR);
       }
-      FDBG( "moveNext Ofs: %d Obj: %d Siz: %d (%d)", nextOfs, m_currObj.getOfs(), m_currObj.getSize(), getLastError());
+      FDBG4( "moveNext Ofs: %d Obj: %d Siz: %d (%d)", nextOfs, m_currObj.getOfs(), m_currObj.getSize(), getLastError());
 
       if ( getStatus() != -1 )
       {
@@ -265,11 +265,11 @@ int farchive::moveTo(const unsigned int objId)
 
    if ( found == true )
    {
-      FDBG( "moveToObject id: %d at: %d", objId, m_currObj.getOfs() );
+      FDBG2( "moveToObject id: %d at: %d", objId, m_currObj.getOfs() );
       setLastError(NO_ERROR);
    } else
    {
-      FWARN( "moveToObject id: %d not found", objId );
+      FWARN1( "moveToObject id: %d not found", objId );
    }
 
    return getStatus();
@@ -295,10 +295,10 @@ int farchive::remove(const unsigned int objId)
 
    if ( getStatus() != -1 )
    {
-      FDBG( "remove obj id: %d ofs: %d", objId, m_currObj.getOfs() );
+      FDBG2( "remove obj id: %d ofs: %d", objId, m_currObj.getOfs() );
    } else
    {
-      FERR( "remove obj id: %d failed", objId );
+      FERR1( "remove obj id: %d failed", objId );
    }
    return getStatus();
 }

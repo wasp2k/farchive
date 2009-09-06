@@ -84,7 +84,7 @@ int farchiveidx::createFileHeader(void)
          if ( obj.getId() != FARCHIVEIDX_FIRST_INDEX_ID )
          {
             /* First index must have object ID = 2 */
-            FERR( "Bad index object ID: %d", obj.getId());
+            FERR1( "Bad index object ID: %d", obj.getId());
             setLastError(BAD_INDEX_OBJECT);
          } else
          {
@@ -112,7 +112,7 @@ int farchiveidx::readIndex(void)
       {
          if ( m_currObj.getId() != FARCHIVEIDX_FIRST_INDEX_ID )      /* Check object ID */
          {
-            FERR( "Bad index object ID: %d", m_currObj.getId());
+            FERR1( "Bad index object ID: %d", m_currObj.getId());
             setLastError(BAD_INDEX_OBJECT);
          } else
          {
@@ -128,7 +128,7 @@ int farchiveidx::readIndex(void)
                   /* failed */
                } else
                {
-                  FDBG( "readIndex index at ofs: %d %p Next: %d", data->obj.getOfs(), data, data->obj->nextObjId );
+                  FDBG3( "readIndex index at ofs: %d %p Next: %d", data->obj.getOfs(), data, data->obj->nextObjId );
 
                   INDEX &idx = *((INDEX*)data->obj.getPtr());
                   if ( idx.nextObjId != 0 )
@@ -156,7 +156,7 @@ int farchiveidx::add(fobject &obj)
       /* failed */
    } else
    {
-      FDBG( "add obj: %d at: %d siz: %d", obj.getId(), obj.getOfs(), obj.getSize() );
+      FDBG3( "add obj: %d at: %d siz: %d", obj.getId(), obj.getOfs(), obj.getSize() );
       registerIndex(obj);
    }
    return getStatus();
@@ -185,7 +185,7 @@ int farchiveidx::findObject(const unsigned int objId, DATA *(&data), int &dataId
          ITEM &item = idx.items[ n ];
          if ( item.id == objId )
          {
-            FDBG( "findObject obj: %d found at at: %d", item.id, item.ofs );
+            FDBG2( "findObject obj: %d found at at: %d", item.id, item.ofs );
             data = internalData;
             dataIdx = n;
             found = 1;
@@ -197,7 +197,7 @@ int farchiveidx::findObject(const unsigned int objId, DATA *(&data), int &dataId
 
    if ( !found )
    {
-      FDBG( "findObject obj: %d not found", objId );
+      FDBG1( "findObject obj: %d not found", objId );
    }
    setLastError(NO_ERROR);
 
@@ -228,10 +228,10 @@ int farchiveidx::registerIndex(const fobject &obj)
             /* failed */
          } else
          {
-            FDBG( "registerObject extend index obj: %d ofs: %d", newIdxBlock->obj.getId(), newIdxBlock->obj.getOfs() );
+            FDBG2( "registerObject extend index obj: %d ofs: %d", newIdxBlock->obj.getId(), newIdxBlock->obj.getOfs() );
             if ( m_firstData->obj->items[FINDEX_SIZE].id != 0 )
             {
-               FERR( "registerObject extend index failed ID: %d", m_firstData->obj->items[FINDEX_SIZE].id );
+               FERR1( "registerObject extend index failed ID: %d", m_firstData->obj->items[FINDEX_SIZE].id );
                setLastError(EXPAND_INDEX_FAILED);
             } else
             {
@@ -262,7 +262,7 @@ int farchiveidx::registerIndex(const fobject &obj)
 
    if ( getStatus() != -1 )
    {
-      FDBG( "registerObject obj: %d %p at: %d", obj.getId(), data, dataIdx );
+      FDBG3( "registerObject obj: %d %p at: %d", obj.getId(), data, dataIdx );
 
       ITEM &item = data->obj->items[ dataIdx ];
       item.id = obj.getId();
@@ -319,7 +319,7 @@ int farchiveidx::moveToOfs(int ofs)
    m_currObj.readHeader( m_file );
    setLastError(m_currObj);
 
-   FDBG( "FCArchive::moveToOfs Ofs: %d Obj: %d Siz: %d", ofs, m_currObj.getOfs(), m_currObj.getSize() );
+   FDBG3( "FCArchive::moveToOfs Ofs: %d Obj: %d Siz: %d", ofs, m_currObj.getOfs(), m_currObj.getSize() );
    return getStatus();
 }
 

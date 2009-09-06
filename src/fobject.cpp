@@ -99,7 +99,7 @@ int fobject::readHeader(ffile &file)
          setLastError(file);
       } else
       {
-         FDBG("FCObject::readHeader id: %d ofs: %d siz: %d", obj.id, m_ofs, obj.size );
+         FDBG3("FCObject::readHeader id: %d ofs: %d siz: %d", obj.id, m_ofs, obj.size );
 
          #if FOBJECT_INCLUDE_DEBUG_PATTEN
          if ( obj.pattern != FOBJECT_PATTERN )
@@ -114,7 +114,7 @@ int fobject::readHeader(ffile &file)
       }
    }
 
-   FDBG( "Read header ofs:%d %d", m_ofs, getLastError() );
+   FDBG2( "Read header ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }
@@ -158,7 +158,7 @@ int fobject::read(ffile &file)
       }
    }
 
-   FDBG( "Read ofs:%d %d", m_ofs, getLastError() );
+   FDBG2( "Read ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }
@@ -204,7 +204,7 @@ int fobject::read(ffile &file, void *buf)
       }
    }
 
-   FDBG( "Read ofs:%d ptr: %p %d", m_ofs, buf, getLastError() );
+   FDBG3( "Read ofs:%d ptr: %p %d", m_ofs, buf, getLastError() );
 
    return getStatus();
 }
@@ -227,7 +227,7 @@ int fobject::flush(ffile &file)
             setLastError(file);
          } else
          {
-            FDBG( "Append object %d at: %d", m_obj.id, m_ofs );
+            FDBG2( "Append object %d at: %d", m_obj.id, m_ofs );
             setLastError(NO_ERROR);
          }
       } else
@@ -266,7 +266,7 @@ int fobject::flush(ffile &file)
       }
    }
 
-   FDBG( "Flush ofs:%d %d", m_ofs, getLastError() );
+   FDBG2( "Flush ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }
@@ -292,7 +292,7 @@ int fobject::flush(ffile &file, void *buf)
             setLastError(file);
          } else
          {
-            FDBG( "Append object %d at: %d", m_obj.id, m_ofs );
+            FDBG2( "Append object %d at: %d", m_obj.id, m_ofs );
             setLastError(NO_ERROR);
          }
       } else
@@ -334,7 +334,7 @@ int fobject::flush(ffile &file, void *buf)
       }
    }
 
-   FDBG( "Flush ofs:%d %d", m_ofs, getLastError() );
+   FDBG2( "Flush ofs:%d %d", m_ofs, getLastError() );
 
    return getStatus();
 }
