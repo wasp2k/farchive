@@ -369,3 +369,25 @@ void fobject::zero()
 
 /* ------------------------------------------------------------------------- */
 
+fobject &fobject::operator=(const fobject &fobj)
+{
+   this->m_ofs = fobj.m_ofs;
+   this->m_obj = fobj.m_obj;
+
+   freePayload();
+
+   if ( fobj.m_data != NULL )
+   {
+      if ( this->allocPayload( fobj.m_dataSize ) == -1 )
+      {
+      } else
+      {
+         memcpy( this->m_data, fobj.m_data, fobj.m_dataSize );
+      }
+   }
+
+
+   return *this;
+}
+
+/* ------------------------------------------------------------------------- */

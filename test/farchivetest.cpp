@@ -25,8 +25,10 @@ void test_fmem()
    {
       memset( p, 0xaa, m.getSize() );
    }
-
    m.unmap();
+
+   m.write();
+
    f.close();
 }
 

@@ -32,6 +32,7 @@ public:
       BAD_OBJECT_PAYLOAD,
       BAD_OBJECT_PATTERN,
       BAD_FILE_OBJECT,
+      BAD_ARCHIVE,
 
       /* farchiveidx */
       BAD_INDEX_OBJECT,

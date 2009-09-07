@@ -58,10 +58,13 @@ public:
 
    inline void *getPtr(){ return m_data; }
 
+   fobject &operator=(const fobject &fobj);
+
    void zero();
 
    friend class farchive;
    friend class farchiveidx;
+   friend class fmem;
 };
 
 template<class TYPE>

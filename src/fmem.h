@@ -12,6 +12,12 @@ class fmem : public ferror
     void *m_dataPtr;
     int *m_lenPtr;
 
+    fobject **m_objList;
+    int m_objCnt;
+
+    int getObj(int ofs, int size);
+    int growObjList(void);
+    int freeObjList();
 
     int realloc(int size);
 
@@ -26,6 +32,8 @@ public:
 
     int setSize(int size);
     int getSize(void);
+
+    int write(void);
 
     int free();
 };
