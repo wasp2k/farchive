@@ -45,7 +45,7 @@ public:
    int flush(ffile &file);
    int flush(ffile &file, void *buf);
 
-   inline unsigned int getOfs() const{return m_ofs; }
+   inline int getOfs() const{return m_ofs; }
 
    inline unsigned int getId() const {return m_obj.id; }
 

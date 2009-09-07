@@ -221,7 +221,7 @@ int farchive::moveNext()
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::getObject(fobject &obj)
+int farchive::readObject(fobject &obj)
 {
    setLastError(UNDEFINED);
    obj.setOfs( m_currObj.getOfs() );
@@ -231,6 +231,28 @@ int farchive::getObject(fobject &obj)
    } else
    {
       setLastError(NO_ERROR);
+   }
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int farchive::writeObject(fobject &obj)
+{
+   setLastError(UNDEFINED);
+
+   if ( obj.getOfs() == -1 )
+   {
+      add(obj);
+   } else
+   {
+      if ( obj.flush( m_file ) == -1 )
+      {
+         setLastError(obj);
+      } else
+      {
+         setLastError(NO_ERROR);
+      }
    }
    return getStatus();
 }

@@ -44,7 +44,8 @@ public:
 
    virtual int moveTo(const unsigned int objId);
 
-   virtual int getObject(fobject &obj);
+   virtual int readObject(fobject &obj);
+   virtual int writeObject(fobject &obj);
 
    virtual int add(fobject &obj);
 

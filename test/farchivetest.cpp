@@ -14,20 +14,32 @@ void test_fmem()
 {
    farchive f;
    fmem m(f);
+   fmem m2(f);
 
    f.create("test.arc");
 
    m.setSize(1024);
-
    char *p = (char*)m.map();
-
    if ( p!= NULL )
    {
-      memset( p, 0xaa, m.getSize() );
+      memset( p, 0xaa, 1024 );
    }
    m.unmap();
-
    m.write();
+
+   m.setSize(2048);
+   p = (char*)m.map();
+   if ( p!= NULL )
+   {
+      memset( p + 1024, 0xbb, 1024 );
+   }
+   m.unmap();
+   m.write();
+
+   f.moveFirst();
+
+
+
 
    f.close();
 }

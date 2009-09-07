@@ -9,22 +9,19 @@ class fmem : public ferror
 {
     int m_lockCnt;
 
-    void *m_dataPtr;
+    char *m_dataPtr;
     int *m_lenPtr;
 
     fobject **m_objList;
     int m_objCnt;
 
-    int getObj(int ofs, int size);
     int growObjList(void);
     int freeObjList();
 
     int realloc(int size);
 
-    farchive &m_arch;
-
 public:
-    fmem(farchive &arch);
+    fmem();
     virtual ~fmem();
 
     void *map(void);
@@ -33,7 +30,7 @@ public:
     int setSize(int size);
     int getSize(void);
 
-    int write(void);
+    int write(farchive &arch);
 
     int free();
 };

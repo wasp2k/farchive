@@ -123,7 +123,7 @@ int farchiveidx::readIndex(void)
                data->nextData = m_firstData;
                m_firstData = data;
 
-               if ( getObject(data->obj) == -1 )
+               if ( readObject(data->obj) == -1 )
                {
                   /* failed */
                } else
