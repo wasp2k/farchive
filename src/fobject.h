@@ -30,10 +30,10 @@ private:
    void freePayload(void);
 
 protected:
-   inline void setOfs(long int ofs){ m_ofs = ofs; }
-   void setId(unsigned int id);
-   void setOptions(unsigned int options);
-   void setNextChain(unsigned int nextChain);
+   inline void setOfs(int ofs){ m_ofs = ofs; }
+          void setId(unsigned int id);
+          void setOptions(unsigned int options);
+          void setNextChain(unsigned int nextChain);
 
 public:
    fobject(unsigned int size = 0);
@@ -45,18 +45,15 @@ public:
    int flush(ffile &file);
    int flush(ffile &file, void *buf);
 
-   inline int getOfs() const{return m_ofs; }
+   inline          int getOfs() const        {return m_ofs; }
+   inline unsigned int getId() const         {return m_obj.id; }
+   inline unsigned int getOptions() const    {return m_obj.options; }
+   inline unsigned int getNextChain() const  {return m_obj.nextChain; }
+   inline unsigned int getSize() const       {return m_obj.size; }
+   inline void *getPtr() const               { return m_data; }
 
-   inline unsigned int getId() const {return m_obj.id; }
-
-   inline unsigned int getOptions() const {return m_obj.options; }
-
-   inline unsigned int getNextChain() const {return m_obj.nextChain; }
-
-   inline unsigned int getSize(){return m_obj.size; }
    inline unsigned int getBlockSize(){ return m_obj.size + sizeof( OBJECT ); }
 
-   inline void *getPtr(){ return m_data; }
 
    fobject &operator=(const fobject &fobj);
 
@@ -75,6 +72,5 @@ public:
 
    inline TYPE *operator->(){ return (TYPE*)getPtr(); }
 };
-
 
 #endif // FCOBJECT_H

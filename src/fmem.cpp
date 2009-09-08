@@ -14,14 +14,14 @@ fmem::fmem()
 
    m_objList = NULL;
    m_objCnt = 0;
-
-   growObjList();
+   m_allocObjCnt = 0;
 }
 
 /* ------------------------------------------------------------------------- */
 
 fmem::~fmem()
 {
+   free();
    freeObjList();
 }
 
@@ -155,9 +155,62 @@ void fmem::unmap(void)
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
+int fmem::read(farchive &arch)
+{
+   setLastError(UNDEFINED);
+
+   free();
+   freeObjList();
+
+   if ( m_dataPtr == NULL )
+   {
+      setLastError(BAD_OBJECT_PAYLOAD);
+   } else
+   {
+      if ( !arch.isOpen() )
+      {
+         setLastError(BAD_ARCHIVE);
+      } else
+      {
+         int objIdx = 0;
+
+         growObjList();
+
+
+
+         do
+         {
+            if ( objIdx >= m_objCnt )
+            {
+               growObjList();
+            }
+
+            if ( getStatus() != -1 )
+            {
+               fobject* &obj = m_objList[objIdx];
+
+               obj = new fobject();
+
+               arch.readObject(*obj);
+
+               //ptr += obj->getSize();
+               //bytesLeft -= obj->getSize();
+               objIdx++;
+            }
+         } while(getStatus()!=-1);
+      }
+   }
+   return getStatus();
+}
+#endif
+
+/* ------------------------------------------------------------------------- */
+
+#if 0
 int fmem::write(farchive &arch)
 {
-   setLastError(NO_ERROR);
+   setLastError(UNDEFINED);
 
    if ( m_dataPtr == NULL )
    {
@@ -208,6 +261,7 @@ int fmem::write(farchive &arch)
    }
    return getStatus();
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -217,7 +271,7 @@ int fmem::growObjList(void)
 
    setLastError(UNDEFINED);
 
-   objList = new fobject*[ m_objCnt + FMEM_GROW_OBJ_BY ];
+   objList = new fobject*[ m_allocObjCnt + FMEM_GROW_OBJ_BY ];
    memset(objList, 0, sizeof(fobject*) * (m_objCnt + FMEM_GROW_OBJ_BY));
    if ( objList == NULL )
    {
@@ -231,20 +285,22 @@ int fmem::growObjList(void)
       }
 
       m_objList = objList;
-      m_objCnt += FMEM_GROW_OBJ_BY;
+      m_allocObjCnt += FMEM_GROW_OBJ_BY;
+
+      setLastError(NO_ERROR);
    }
    return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
-int fmem::freeObjList()
+int fmem::freeObjList(void)
 {
    setLastError(UNDEFINED);
 
    if ( m_objList != NULL )
    {
-      for (int i=0; i<m_objCnt; i++)
+      for (int i=0; i<m_allocObjCnt; i++)
       {
          if ( m_objList[i] != NULL )
          {
@@ -257,6 +313,33 @@ int fmem::freeObjList()
       m_objList = NULL;
       m_objCnt = 0;
    }
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fmem::pushObject(fobject *pushObj)
+{
+   setLastError(UNDEFINED);
+   if ( m_objCnt >= m_allocObjCnt )
+   {
+      growObjList();
+   }
+
+   if ( getStatus() != -1 )
+   {
+      fobject * &obj = m_objList[ m_objCnt ];
+      obj = pushObj;
+      m_objCnt++;
+   }
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fmem::commit(void)
+{
+   setLastError(UNDEFINED);
    return getStatus();
 }
 

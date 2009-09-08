@@ -221,7 +221,7 @@ int farchive::moveNext()
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::readObject(fobject &obj)
+int farchive::read(fobject &obj)
 {
    setLastError(UNDEFINED);
    obj.setOfs( m_currObj.getOfs() );
@@ -237,7 +237,7 @@ int farchive::readObject(fobject &obj)
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::writeObject(fobject &obj)
+int farchive::write(fobject &obj)
 {
    setLastError(UNDEFINED);
 
@@ -334,3 +334,21 @@ int farchive::isOpen(void)
    setLastError(NO_ERROR);
    return getStatus(open);
 }
+
+/* ------------------------------------------------------------------------- */
+
+int farchive::read(fmem &obj)
+{
+   setLastError(UNDEFINED);
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int farchive::write(fmem &obj)
+{
+   setLastError(UNDEFINED);
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */

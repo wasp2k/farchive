@@ -4,6 +4,7 @@
 #include "ferror.h"
 #include "ffile.h"
 #include "fobject.h"
+#include "fmem.h"
 
 class farchive : public ferror
 {
@@ -44,11 +45,13 @@ public:
 
    virtual int moveTo(const unsigned int objId);
 
-   virtual int readObject(fobject &obj);
-   virtual int writeObject(fobject &obj);
+   virtual int read(fobject &obj);
+   virtual int write(fobject &obj);
+
+   virtual int read(fmem &obj);
+   virtual int write(fmem &obj);
 
    virtual int add(fobject &obj);
-
    virtual int remove(const unsigned int objId);
 };
 

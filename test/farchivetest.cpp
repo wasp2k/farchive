@@ -13,8 +13,8 @@ struct DATA
 void test_fmem()
 {
    farchive f;
-   fmem m(f);
-   fmem m2(f);
+   fmem m;
+   fmem m2;
 
    f.create("test.arc");
 
@@ -25,7 +25,7 @@ void test_fmem()
       memset( p, 0xaa, 1024 );
    }
    m.unmap();
-   m.write();
+   f.write(m);
 
    m.setSize(2048);
    p = (char*)m.map();
@@ -34,14 +34,13 @@ void test_fmem()
       memset( p + 1024, 0xbb, 1024 );
    }
    m.unmap();
-   m.write();
+   f.write(m);
 
    f.moveFirst();
 
-
-
-
+   //m2.read(f);
    f.close();
+
 }
 
 int main(int /*argc*/, char */*argv*/[])

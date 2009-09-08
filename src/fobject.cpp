@@ -385,8 +385,6 @@ fobject &fobject::operator=(const fobject &fobj)
          memcpy( this->m_data, fobj.m_data, fobj.m_dataSize );
       }
    }
-
-
    return *this;
 }
 
