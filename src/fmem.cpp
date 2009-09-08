@@ -318,7 +318,7 @@ int fmem::freeObjList(void)
 
 /* ------------------------------------------------------------------------- */
 
-int fmem::pushObject(fobject *pushObj)
+int fmem::pushObj(fobject *pushObj)
 {
    setLastError(UNDEFINED);
    if ( m_objCnt >= m_allocObjCnt )
@@ -337,7 +337,15 @@ int fmem::pushObject(fobject *pushObj)
 
 /* ------------------------------------------------------------------------- */
 
-int fmem::commit(void)
+int fmem::commitObj(void)
+{
+   setLastError(UNDEFINED);
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int getObjList(fobject ** &objList, int &objCnt)
 {
    setLastError(UNDEFINED);
    return getStatus();

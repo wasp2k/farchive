@@ -23,8 +23,10 @@ private:
     int growObjList(void);
     int freeObjList(void);
 protected:
-    int pushObject(fobject *pushObj);
-    int commit(void);
+    int pushObj(fobject *pushObj);
+    int commitObj(void);
+    int getObjList(fobject ** &objList, int &objCnt);
+
 
 public:
     fmem();
