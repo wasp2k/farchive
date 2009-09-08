@@ -10,8 +10,18 @@ struct DATA
    int b;
 };
 
+char buf[128] = {};
+
 void test_fmem()
 {
+   fmem  m;
+   memset(buf,0xaa,sizeof(buf));
+   m.append(buf,sizeof(buf));
+   memset(buf,0xbb,sizeof(buf));
+   m.append(buf,sizeof(buf));
+   m.free();
+
+#if 0
    farchive f;
    fmem m;
    fmem m2;
@@ -40,6 +50,7 @@ void test_fmem()
 
    //m2.read(f);
    f.close();
+#endif
 
 }
 

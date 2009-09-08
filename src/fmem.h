@@ -9,25 +9,10 @@ class fmem : public ferror
 {
     int m_lockCnt;
 
-    char *m_dataPtr;
+    char *m_buf;
+    int m_bufSize;
+
     int *m_lenPtr;
-
-
-    int realloc(int size);
-
-private:
-    fobject **m_objList;      /* Object list */
-    int m_allocObjCnt;        /* Number of allocated objects */
-    int m_objCnt;             /* Number of used objects */
-
-    int growObjList(void);
-    int freeObjList(void);
-protected:
-    int pushObj(fobject *pushObj);
-    int commitObj(void);
-    int getObjList(fobject ** &objList, int &objCnt);
-
-
 public:
     fmem();
     virtual ~fmem();
@@ -35,10 +20,13 @@ public:
     void *map(void);
     void unmap(void);
 
-    int setSize(int size);
-    int getSize(void);
+    int alloc(int size);
+    int realloc(int size);
+    void free();
 
-    int free();
+    int append(void *ptr,int size);
+
+    int getSize(void);
 
     friend class farchive;
 };

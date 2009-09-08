@@ -2,19 +2,14 @@
 #include <string.h>
 #include "fmem.h"
 
-#define FMEM_GROW_OBJ_BY   16
-
 /* ------------------------------------------------------------------------- */
 
 fmem::fmem()
 {
    m_lockCnt = 0;
-   m_dataPtr = 0;
+   m_buf = 0;
+   m_bufSize = 0;
    m_lenPtr = 0;
-
-   m_objList = NULL;
-   m_objCnt = 0;
-   m_allocObjCnt = 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -22,41 +17,19 @@ fmem::fmem()
 fmem::~fmem()
 {
    free();
-   freeObjList();
 }
 
 /* ------------------------------------------------------------------------- */
 
-int fmem::setSize(int size)
+int fmem::alloc(int size)
 {
    setLastError(UNDEFINED);
-
+   free();
    if ( realloc(size) == -1 )
    {
       /* failed */
-   } else
-   {
-      setLastError(NO_ERROR);
    }
    return getStatus();
-}
-
-/* ------------------------------------------------------------------------- */
-
-int fmem::getSize(void)
-{
-   int retVal = 0;
-   setLastError(UNDEFINED);
-
-   if ( m_dataPtr == NULL )
-   {
-      setLastError(BAD_OBJECT_PAYLOAD);
-   } else
-   {
-      retVal = *m_lenPtr;
-      setLastError(NO_ERROR);
-   }
-   return getStatus(retVal);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -73,7 +46,7 @@ int fmem::realloc(int size)
       setLastError(ALLOC_FAILED);
    } else
    {
-      if ( m_dataPtr != NULL )         /* Keep the content of the data buffer */
+      if ( m_buf != NULL )             /* Keep the content of the data buffer */
       {
          int oldSize = *m_lenPtr;
          int toCopy;
@@ -85,11 +58,11 @@ int fmem::realloc(int size)
 
          toCopy += sizeof( int );      /* First int is buffer length, therefore add int length */
 
-         memcpy( dataPtr, m_dataPtr, toCopy );
+         memcpy( dataPtr, m_buf, toCopy );
 
-         delete[] m_dataPtr;           /* release old buffer */
+         delete[] m_buf;           /* release old buffer */
       }
-      m_dataPtr = dataPtr;
+      m_buf = dataPtr;
       m_lenPtr = (int*)dataPtr;
 
       *m_lenPtr = size;
@@ -101,16 +74,14 @@ int fmem::realloc(int size)
 
 /* ------------------------------------------------------------------------- */
 
-int fmem::free()
+void fmem::free()
 {
-   if ( m_dataPtr != NULL )
+   if ( m_buf != NULL )
    {
-      delete[] m_dataPtr;
-      m_dataPtr = NULL;
+      delete[] m_buf;
+      m_buf = NULL;
       m_lenPtr = NULL;
    }
-   setLastError(NO_ERROR);
-   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -120,7 +91,7 @@ void *fmem::map(void)
    void *retVal = NULL;
    setLastError(UNDEFINED);
 
-   if ( m_dataPtr == NULL )
+   if ( m_buf == NULL )
    {
       setLastError(BAD_OBJECT_PAYLOAD);
    } else
@@ -131,7 +102,7 @@ void *fmem::map(void)
       } else
       {
          m_lockCnt++;
-         retVal = (void*)((int*)m_dataPtr + 1);
+         retVal = (void*)((int*)m_buf + 1);
          setLastError(NO_ERROR);
       }
    }
@@ -155,199 +126,59 @@ void fmem::unmap(void)
 
 /* ------------------------------------------------------------------------- */
 
-#if 0
-int fmem::read(farchive &arch)
+int fmem::getSize(void)
 {
+   int retVal = 0;
    setLastError(UNDEFINED);
 
-   free();
-   freeObjList();
-
-   if ( m_dataPtr == NULL )
+   if ( m_buf == NULL )
    {
       setLastError(BAD_OBJECT_PAYLOAD);
    } else
    {
-      if ( !arch.isOpen() )
-      {
-         setLastError(BAD_ARCHIVE);
-      } else
-      {
-         int objIdx = 0;
-
-         growObjList();
-
-
-
-         do
-         {
-            if ( objIdx >= m_objCnt )
-            {
-               growObjList();
-            }
-
-            if ( getStatus() != -1 )
-            {
-               fobject* &obj = m_objList[objIdx];
-
-               obj = new fobject();
-
-               arch.readObject(*obj);
-
-               //ptr += obj->getSize();
-               //bytesLeft -= obj->getSize();
-               objIdx++;
-            }
-         } while(getStatus()!=-1);
-      }
-   }
-   return getStatus();
-}
-#endif
-
-/* ------------------------------------------------------------------------- */
-
-#if 0
-int fmem::write(farchive &arch)
-{
-   setLastError(UNDEFINED);
-
-   if ( m_dataPtr == NULL )
-   {
-      setLastError(BAD_OBJECT_PAYLOAD);
-   } else
-   {
-      if ( !arch.isOpen() )
-      {
-         setLastError(BAD_ARCHIVE);
-      } else
-      {
-         int objIdx = 0;
-         int bytesLeft = *m_lenPtr + sizeof( int );
-         char *ptr = m_dataPtr;
-
-         setLastError(NO_ERROR);
-         while((bytesLeft>0) && (getStatus() != -1))
-         {
-            if ( objIdx >= m_objCnt )
-            {
-               growObjList();
-            }
-
-            if ( getStatus() != -1 )
-            {
-               fobject* &obj = m_objList[objIdx];
-               if ( obj == NULL )
-               {
-                  obj = new fobject(bytesLeft);
-                  if ( obj == NULL )
-                  {
-                     setLastError(ALLOC_FAILED);
-                  } else
-                  {
-                     memcpy(obj->getPtr(),ptr, obj->getSize());
-
-                  }
-               }
-
-               arch.writeObject(*obj);
-
-               ptr += obj->getSize();
-               bytesLeft -= obj->getSize();
-               objIdx++;
-            }
-         }
-      }
-   }
-   return getStatus();
-}
-#endif
-
-/* ------------------------------------------------------------------------- */
-
-int fmem::growObjList(void)
-{
-   fobject **objList;
-
-   setLastError(UNDEFINED);
-
-   objList = new fobject*[ m_allocObjCnt + FMEM_GROW_OBJ_BY ];
-   memset(objList, 0, sizeof(fobject*) * (m_objCnt + FMEM_GROW_OBJ_BY));
-   if ( objList == NULL )
-   {
-      setLastError(ALLOC_FAILED);
-   } else
-   {
-      if ( m_objList == NULL )
-      {
-      } else
-      {
-      }
-
-      m_objList = objList;
-      m_allocObjCnt += FMEM_GROW_OBJ_BY;
-
+      retVal = *m_lenPtr;
       setLastError(NO_ERROR);
    }
-   return getStatus();
+   return getStatus(retVal);
 }
 
 /* ------------------------------------------------------------------------- */
 
-int fmem::freeObjList(void)
+int fmem::append(void *ptr,int size)
 {
    setLastError(UNDEFINED);
-
-   if ( m_objList != NULL )
+   if ( ptr == NULL )
    {
-      for (int i=0; i<m_allocObjCnt; i++)
+      setLastError(BAD_PARAMETER);
+   } else
+   {
+      int ofs;
+      if ( m_buf == NULL )
       {
-         if ( m_objList[i] != NULL )
+         alloc(size);
+         ofs = 0;
+      } else
+      {
+         ofs = *m_lenPtr;
+         realloc(*m_lenPtr + size);
+      }
+
+      if ( getStatus() != -1 )
+      {
+         char *dstPtr;
+
+         dstPtr = (char*)map();
+         if ( dstPtr == NULL)
          {
-            delete m_objList[i];
-            m_objList[i] = NULL;
+            /* failed */
+         } else
+         {
+            memcpy( dstPtr + ofs, ptr, size );
+            setLastError(NO_ERROR);
+            unmap();
          }
       }
-      ::free(m_objList);
-
-      m_objList = NULL;
-      m_objCnt = 0;
    }
-   return getStatus();
-}
-
-/* ------------------------------------------------------------------------- */
-
-int fmem::pushObj(fobject *pushObj)
-{
-   setLastError(UNDEFINED);
-   if ( m_objCnt >= m_allocObjCnt )
-   {
-      growObjList();
-   }
-
-   if ( getStatus() != -1 )
-   {
-      fobject * &obj = m_objList[ m_objCnt ];
-      obj = pushObj;
-      m_objCnt++;
-   }
-   return getStatus();
-}
-
-/* ------------------------------------------------------------------------- */
-
-int fmem::commitObj(void)
-{
-   setLastError(UNDEFINED);
-   return getStatus();
-}
-
-/* ------------------------------------------------------------------------- */
-
-int getObjList(fobject ** &objList, int &objCnt)
-{
-   setLastError(UNDEFINED);
    return getStatus();
 }
 
