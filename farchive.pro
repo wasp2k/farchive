@@ -3,7 +3,7 @@
 # -------------------------------------------------
 QT -= core \
     gui
-CONFIG += staticlib
+CONFIG += staticlib x86
 TARGET = farchive
 CONFIG -= app_bundle
 OBJECTS_DIR = objs

@@ -1,14 +1,12 @@
 #include "farchiveidx.h"
 
-#if 0
-
 #define FARCHIVEIDX_FIRST_INDEX_ID     2
+#define FINDEX_GROW_BY                 512
 
 /* ------------------------------------------------------------------------- */
 
 farchiveidx::farchiveidx()
 {
-   m_firstData = NULL;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -44,49 +42,38 @@ int farchiveidx::open(const char *fileName)
 
 /* ------------------------------------------------------------------------- */
 
-void farchiveidx::freeIndex(void)
-{
-   while( m_firstData )
-   {
-      DATA *data = m_firstData;
-      m_firstData = data->nextData;
-      delete data;
-   }
-}
-
-/* ------------------------------------------------------------------------- */
-
 int farchiveidx::close(void)
 {
    setLastError(UNDEFINED);
-   freeIndex();
+   m_index.free();
    farchive::close();
    return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
-int farchiveidx::createFileHeader(void)
+int farchiveidx::createArchiveHeader(void)
 {
-   fobjectT<INDEX> obj;
-   obj.zero();
-
    setLastError(UNDEFINED);
 
-   if ( farchive::createFileHeader() == -1 )    /* Create standard header */
+   m_index.free();
+   m_index.alloc( sizeof( ITEM ) * FINDEX_GROW_BY );
+   m_index.zero();
+
+   if ( farchive::createArchiveHeader() == -1 )    /* Create standard header */
    {
       /* failed */
    } else
    {
-      if ( farchive::add(obj) == -1 )           /* Add empty index table */
+      if ( add(m_index) == -1 )         /* Add empty index table */
       {
          /* failed */
       } else
       {
-         if ( obj.getId() != FARCHIVEIDX_FIRST_INDEX_ID )
+         if ( m_index.getId() != FARCHIVEIDX_FIRST_INDEX_ID )
          {
             /* First index must have object ID = 2 */
-            FERR1( "Bad index object ID: %d", obj.getId());
+            FERR1( "Bad index object ID: %d", m_index.getId());
             setLastError(BAD_INDEX_OBJECT);
          } else
          {
@@ -102,6 +89,7 @@ int farchiveidx::createFileHeader(void)
 int farchiveidx::readIndex(void)
 {
    setLastError(UNDEFINED);
+
    if ( moveFirst() == -1 )      /* Move to first object, must be lastID record */
    {
       /* failed */
@@ -118,30 +106,7 @@ int farchiveidx::readIndex(void)
             setLastError(BAD_INDEX_OBJECT);
          } else
          {
-            DATA *data;
-            do
-            {
-               data = new DATA;
-               data->nextData = m_firstData;
-               m_firstData = data;
-
-               if ( read(data->obj) == -1 )
-               {
-                  /* failed */
-               } else
-               {
-                  FDBG3( "readIndex index at ofs: %d %p Next: %d", data->obj.getOfs(), data, data->obj->nextObjId );
-
-                  INDEX &idx = *((INDEX*)data->obj.getPtr());
-                  if ( idx.nextObjId != 0 )
-                  {
-                     if ( moveTo(idx.nextObjId) == -1 )
-                     {
-                        /* Failed */
-                     }
-                  }
-               }
-            } while( (data->obj->nextObjId != 0) && (getStatus() != -1));
+            read( m_index );
          }
       }
    }
@@ -150,140 +115,154 @@ int farchiveidx::readIndex(void)
 
 /* ------------------------------------------------------------------------- */
 
-int farchiveidx::add(fobject &obj)
+int farchiveidx::add(fmem &mem)
 {
    setLastError(UNDEFINED);
-   if ( farchive::add(obj) == -1 )
+   if ( farchive::add(mem) == -1 )
    {
       /* failed */
    } else
    {
-      FDBG3( "add obj: %d at: %d siz: %d", obj.getId(), obj.getOfs(), obj.getSize() );
-      registerIndex(obj);
+      // FDBG3( "add obj: %d at: %d siz: %d", mem.getId(), mem.getOfs(), mem.getSize() );
+      registerIndex(mem);
    }
    return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
-int farchiveidx::findObject(const unsigned int objId, DATA *(&data), int &dataIdx )
+int farchiveidx::write(fmem &mem)
 {
-   DATA *internalData = m_firstData;
+   setLastError(UNDEFINED);
+   if ( farchive::write(mem) == -1 )
+   {
+      /* failed */
+   } else
+   {
+      // FDBG3( "add obj: %d at: %d siz: %d", mem.getId(), mem.getOfs(), mem.getSize() );
+      registerIndex(mem);
+   }
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int farchiveidx::findObject(const unsigned int objId, int &pos )
+{
    int found = 0;
-   int searchTo;
+   ITEM *index;
 
    setLastError(UNDEFINED);
 
-   if ( objId == 0 )
-      searchTo = FINDEX_SIZE;       /* Reserve last item for next index block location */
-   else
-      searchTo = FINDEX_SIZE + 1;
-
-   while( ( internalData != NULL ) && (found==0) )
+   index = (ITEM*)m_index.map();
+   if ( index == NULL )
    {
-      INDEX &idx = *((INDEX*)internalData->obj.getPtr());
-      for ( int n = 0; n < searchTo; n ++ )
+      setLastError(m_index);
+   } else
+   {
+      int indexSize = m_index.getSize();
+      if ( indexSize % sizeof( ITEM ) )
       {
-         ITEM &item = idx.items[ n ];
-         if ( item.id == objId )
+         setLastError(BAD_INDEX_POOL);
+      } else
+      {
+         int idx;
+
+         indexSize /= sizeof( ITEM );
+         for ( idx = 0; (idx < indexSize) && (found == 0); idx ++ )
          {
-            FDBG2( "findObject obj: %d found at at: %d", item.id, item.ofs );
-            data = internalData;
-            dataIdx = n;
-            found = 1;
-            break;
+            if ( index[idx].id == objId )
+            {
+               pos = idx;
+               found = 1;
+            }
          }
+         setLastError(NO_ERROR);
       }
-      internalData = internalData->nextData;
+      m_index.unmap();
    }
-
-   if ( !found )
-   {
-      FDBG1( "findObject obj: %d not found", objId );
-   }
-   setLastError(NO_ERROR);
-
    return getStatus(found);
 }
 
 /* ------------------------------------------------------------------------- */
 
-int farchiveidx::registerIndex(const fobject &obj)
+int farchiveidx::addObject(const fobject &obj)
 {
-   DATA  *data = NULL;
-   int dataIdx;
+   int itemIdx;
    int res;
+   ITEM *index;
 
-   res = findObject( 0, data, dataIdx );
-   if ( res == 0 )
+   res = findObject( 0, itemIdx );
+   if ( (res == 0) && (getLastError() == OBJECT_NOT_FOUND))
    {
-      DATA *newIdxBlock = new DATA;
-      if ( newIdxBlock == NULL )
+      m_index.grow( sizeof(ITEM) * FINDEX_GROW_BY );
+      res = findObject( 0, itemIdx );
+   }
+
+   if ( getStatus() == -1 )
+   {
+      /* failed */
+   } else
+   {
+
+      index = (ITEM *)m_index.map();
+      if ( index == NULL )
       {
-         setLastError(ALLOC_FAILED);
+         setLastError(m_index);
       } else
       {
-         newIdxBlock->obj.zero();
+         index[itemIdx].id = obj.getId();
+         index[itemIdx].ofs = obj.getOfs();
+         index[itemIdx].options = obj.getOptions();
 
-         if ( farchive::add(newIdxBlock->obj) == -1 )
-         {
-            /* failed */
-         } else
-         {
-            FDBG2( "registerObject extend index obj: %d ofs: %d", newIdxBlock->obj.getId(), newIdxBlock->obj.getOfs() );
-            if ( m_firstData->obj->items[FINDEX_SIZE].id != 0 )
-            {
-               FERR1( "registerObject extend index failed ID: %d", m_firstData->obj->items[FINDEX_SIZE].id );
-               setLastError(EXPAND_INDEX_FAILED);
-            } else
-            {
-               if ( m_firstData != NULL )
-               {
-                  m_firstData->obj->items[FINDEX_SIZE].id = newIdxBlock->obj.getId();
-                  m_firstData->obj->items[FINDEX_SIZE].ofs = newIdxBlock->obj.getOfs();
-                  m_firstData->obj->items[FINDEX_SIZE].options = newIdxBlock->obj.getOptions();
-                  m_firstData->obj->nextObjId = newIdxBlock->obj.getId();
-                  m_firstData->obj.flush( m_file );
-               }
-
-               newIdxBlock->nextData = m_firstData;
-               m_firstData = newIdxBlock;
-               newIdxBlock = NULL;
-
-               if ( findObject( 0, data, dataIdx ) == -1 )
-               {
-                  setLastError(EXPAND_INDEX_FAILED);
-               }
-            }
-         }
-      }
-
-      if ( newIdxBlock != NULL )  /* Clean memory */
-         delete newIdxBlock;
-   }
-
-   if ( getStatus() != -1 )
-   {
-      FDBG3( "registerObject obj: %d %p at: %d", obj.getId(), data, dataIdx );
-
-      ITEM &item = data->obj->items[ dataIdx ];
-      item.id = obj.getId();
-      item.ofs = obj.getOfs();
-      item.options = obj.getOptions();
-      if ( data->obj.flush(m_file) == -1 )
-      {
-         setLastError(data->obj);
+         m_index.unmap();
       }
    }
-
    return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
-int farchiveidx::moveTo(const unsigned int objId)
+int farchiveidx::registerIndex(const fmem &mem)
+{
+   int itemIdx;
+   int res;
+   int idx;
+   bool dirty = false;
+
+   setLastError(NO_ERROR);
+   for ( idx = 0; (idx < mem.getObjCnt()) && (getStatus() != -1);idx ++ )
+   {
+      const fobject &obj = mem.getObj(idx);
+
+      res = findObject( obj.getId(), itemIdx );
+      switch(res)
+      {
+      case 0:
+         addObject( obj );
+         dirty = true;
+         break;
+      case 1:
+         /* Object already in the index table */
+         break;
+      default:
+         break;
+      }
+   }
+
+   if ( ( getStatus() != -1 ) && dirty )
+   {
+      write(m_index);
+   }
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int farchiveidx::moveTo(const unsigned int /*objId*/)
 {
    setLastError(UNDEFINED);
+#if 0
    int found;
    DATA  *data = NULL;
    int dataIdx;
@@ -309,6 +288,7 @@ int farchiveidx::moveTo(const unsigned int objId)
          setLastError(NO_ERROR);
       }
    }
+#endif
    return getLastError();
 }
 
@@ -327,13 +307,14 @@ int farchiveidx::moveToOfs(int ofs)
 
 /* ------------------------------------------------------------------------- */
 
-int farchiveidx::remove(const unsigned int objId)
+int farchiveidx::remove(const unsigned int /*objId*/)
 {
+   setLastError(UNDEFINED);
+#if 0
    DATA *data;
    int dataIdx;
    int res;
 
-   setLastError(UNDEFINED);
 
    res = findObject(objId, data, dataIdx );
    if ( res == -1 )
@@ -363,9 +344,8 @@ int farchiveidx::remove(const unsigned int objId)
          }
       }
    }
+#endif
    return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
-
-#endif

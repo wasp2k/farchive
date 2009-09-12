@@ -1,11 +1,8 @@
 #ifndef FARCHIVEIDX_H
 #define FARCHIVEIDX_H
 
-#if 0
-
 #include "farchive.h"
-
-#define FINDEX_SIZE    512
+#include "fmem.h"
 
 class farchiveidx : public farchive
 {
@@ -16,29 +13,16 @@ class farchiveidx : public farchive
       unsigned int options;
    };
 
-   struct INDEX                           /* Index structure */
-   {
-      ITEM   items[ FINDEX_SIZE + 1 ];
-      long int nextObjId;
-   };
+   fmem m_index;
 
-   struct DATA
-   {
-      fobjectT<INDEX> obj;
-      DATA *nextData;
-   };
-
-   DATA *m_firstData;
-
-   int findObject(const unsigned int objId, DATA *(&data), int &dataIdx );
-   int registerIndex(const fobject &obj);
+   int findObject(const unsigned int objId, int &pos );
+   int addObject(const fobject &obj);
+   int registerIndex(const fmem &mem);
 
    int readIndex(void);
 
-   void freeIndex(void);
-
 protected:
-   virtual int createFileHeader(void);
+   virtual int createArchiveHeader(void);
 
 private:
    int moveToOfs(int ofs);
@@ -52,11 +36,10 @@ public:
 
    virtual int moveTo(const unsigned int objId);
 
-   virtual int add(fobject &obj);
+   virtual int add(fmem &mem);
+   virtual int write(fmem &mem);
 
    virtual int remove(const unsigned int objId);
 };
-
-#endif
 
 #endif // FARCHIVEIDX_H

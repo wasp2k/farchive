@@ -3,7 +3,7 @@
 # -------------------------------------------------
 QT -= gui
 TARGET = farchivetest
-CONFIG += console
+CONFIG += console x86
 CONFIG -= app_bundle
 TEMPLATE = app
 SOURCES += farchivetest.cpp

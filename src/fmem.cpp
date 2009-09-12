@@ -63,6 +63,8 @@ int fmem::realloc(int size)
          setLastError(ALLOC_FAILED);
       } else
       {
+         memset( dataPtr, 0, size );
+
          if ( m_buf != NULL )             /* Keep the content of the data buffer */
          {
             int oldSize = m_size;
@@ -84,6 +86,13 @@ int fmem::realloc(int size)
       }
    }
    return getStatus(oldSize);
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fmem::grow(int size)
+{
+   return realloc( getSize() + size );
 }
 
 /* ------------------------------------------------------------------------- */
@@ -130,7 +139,7 @@ void *fmem::map(void)
       } else
       {
          m_lockCnt++;
-         retVal = (void*)((int*)m_buf + 1);
+         retVal = m_buf;
          setLastError(NO_ERROR);
       }
    }
@@ -289,6 +298,24 @@ int fmem::zero(void)
       setLastError(NO_ERROR);
    }
    return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fmem::getId(void)
+{
+   int objId;
+   setLastError(UNDEFINED);
+
+   if ( m_objList == NULL )
+   {
+      setLastError(BAD_OBJECT_ID);
+   } else
+   {
+      objId = m_objList[0].getId();
+      setLastError(NO_ERROR);
+   }
+   return getStatus(objId);
 }
 
 /* ------------------------------------------------------------------------- */

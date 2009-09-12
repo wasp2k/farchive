@@ -428,7 +428,17 @@ int farchive::write(fmem &mem)
       {
          fobject &obj = mem.getObj(n);
 
-         if ( obj.writePayload(m_file, ptr ) == -1 )
+         if ( (int)obj.getSize() > bytesLeft )
+         {
+            obj.setSize(bytesLeft);
+         }
+
+         if ( (int)obj.getPayloadSize() <= bytesLeft )
+         {
+            obj.setSize(obj.getPayloadSize());
+         }
+
+         if ( obj.writePayload( m_file, ptr ) == -1 )
          {
             /* failed */
             setLastError(obj);

@@ -54,6 +54,7 @@ public:
    fobject &operator=(const fobject &fobj);
 
    friend class farchive;
+   friend class farchiveidx;
 };
 
 #endif // FCOBJECT_H

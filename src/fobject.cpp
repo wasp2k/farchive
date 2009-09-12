@@ -158,9 +158,15 @@ int fobject::writePayload(ffile &file, void *buf)
                 setLastError(BAD_PARAMETER);
             } else
             {
-               if ( file.write( buf, m_obj.size ) == -1 )            /* write object payload */
+               if ( m_obj.size > 0 )
                {
-                  setLastError(file);
+                  if ( file.write( buf, m_obj.size ) == -1 )            /* write object payload */
+                  {
+                     setLastError(file);
+                  } else
+                  {
+                     setLastError(NO_ERROR);
+                  }
                } else
                {
                   setLastError(NO_ERROR);

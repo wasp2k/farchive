@@ -19,8 +19,8 @@ protected:
    int m_objCnt;
    int m_objAllocated;
 
-   inline int getObjCnt(void){ return m_objCnt; }
-   inline fobject &getObj(int idx){ return m_objList[idx]; }
+   inline int getObjCnt(void) const { return m_objCnt; }
+   inline fobject &getObj(int idx) const { return m_objList[idx]; }
 
    int addObj(const fobject &obj);
    int growObjList(void);
@@ -35,6 +35,7 @@ public:
 
    int alloc(int size);
    int realloc(int size);
+   int grow(int size);
    int free();
    int append(void *ptr,int size);
 
@@ -42,7 +43,10 @@ public:
 
    int zero(void);
 
+   int getId(void);
+
    friend class farchive;
+   friend class farchiveidx;
 };
 
 /* ------------------------------------------------------------------------- */

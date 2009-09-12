@@ -46,6 +46,7 @@ public:
       OBJECT_TOO_MANY_LOCKS,
       OBJECT_NOT_LOCKED,
       OBJECT_MAPPED,
+      BAD_OBJECT_ID,
 
       LAST_CODE
    };
