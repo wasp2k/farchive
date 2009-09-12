@@ -3,6 +3,7 @@
 
 #include "farchive.h"
 #include "fmem.h"
+#include "ffile.h"
 
 struct DATA
 {
@@ -35,17 +36,51 @@ void test_fmem()
    }
    m.unmap();
    f.write(m);
+
+   m.realloc(4096);
+   p = (char*)m.map();
+   if ( p!= NULL )
+   {
+      memset( p + 2048, 0xcc, 2048 );
+   }
+   m.unmap();
+   f.write(m);
+
+
+   m.realloc(128);
+   p = (char*)m.map();
+   if ( p!= NULL )
+   {
+      memset( p, 0xdd, 128 );
+   }
+   m.unmap();
+   f.write(m);
+
+   m.realloc(8192);
+   p = (char*)m.map();
+   if ( p!= NULL )
+   {
+      memset( p, 0xee, 8192);
+   }
+   m.unmap();
+   f.write(m);
+
    f.close();
 
 
    f.open("test.arc");
    f.moveTo(2);
 
-   {
-      fmem m2;
-      f.read(m2);
-   }
+   fmem m2;
+   f.read(m2);
 
+   {
+      ffile f;
+      f.create("raw.raw");
+      f.write(m2.map(),m2.getSize());
+      m2.unmap();
+      f.close();
+   }
 
    f.close();
 }

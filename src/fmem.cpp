@@ -130,7 +130,7 @@ void *fmem::map(void)
       } else
       {
          m_lockCnt++;
-         retVal = (void*)((int*)m_buf + 1);
+         retVal = m_buf;
          setLastError(NO_ERROR);
       }
    }
