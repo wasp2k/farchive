@@ -12,7 +12,7 @@ class fmem : public ferror
 
    char *m_buf;
    int m_bufSize;
-   int *m_lenPtr;
+   int m_size;
 
 protected:
    fobject *m_objList;
@@ -26,9 +26,6 @@ protected:
    int growObjList(void);
    int freeObjList(void);
 
-   inline char *getBuf(void){ return m_buf; }
-   inline int getBufSize(void){ return *m_lenPtr + sizeof( int ); }
-
 public:
    fmem();
    virtual ~fmem();
@@ -41,7 +38,7 @@ public:
    int free();
    int append(void *ptr,int size);
 
-   int getSize(void);
+   inline int getSize(void){ return m_size; }
 
    int zero(void);
 
@@ -63,6 +60,7 @@ public:
    virtual ~fmemT(void)
    {
       unmap();
+      free();
    }
    inline TYPE *operator->(){ return m_ptr; }
 };

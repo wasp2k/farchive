@@ -107,13 +107,15 @@ int farchive::open(const char *fileName)
             setLastError(BAD_ARCHIVE_VERSION);
          } else
          {
-#if 0
-            m_header.setOfs( sizeof( m_version ) );
-            if ( m_header.read(m_file) == -1 )                       /* Read header information */
+            moveFirst();
+            m_header.unmap();
+            m_header.free();
+            if ( read(m_header) == -1 )                       /* Read header information */
             {
                setLastError(m_header);
             } else
             {
+#if 0
                m_currObj.setOfs(m_header.getOfs());/* Adjust current object */
                if ( m_currObj.readHeader(m_file) == -1 )
                {
@@ -122,10 +124,9 @@ int farchive::open(const char *fileName)
                {
                   setLastError(NO_ERROR);
                }
-            }
-#else
-            setLastError(NO_ERROR);
 #endif
+            }
+            m_header.map();
          }
       }
    }
@@ -175,8 +176,7 @@ int farchive::add(fmem &mem)
 int farchive::moveFirst()
 { 
    setLastError(UNDEFINED);
-#if 0
-   m_currObj.setOfs( m_header.getOfs() );
+   m_currObj.setOfs( m_header.getObj(0).getOfs() );
    if ( m_currObj.readHeader( m_file ) == -1 )
    {
       setLastError(m_currObj);
@@ -185,7 +185,6 @@ int farchive::moveFirst()
       setLastError(NO_ERROR);
    }
    FDBG2( "MoveFirst (%d)", m_currObj.getId(), getLastError());
-#endif
    return getStatus();
 }
 
@@ -349,9 +348,59 @@ int farchive::isOpen(void)
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::read(fmem &/*obj*/)
+int farchive::read(fmem &mem)
 {
+   int repeat;
+   int startFrom;
+   char *ptr;
    setLastError(UNDEFINED);
+
+   if ( mem.free() == -1 )
+   {
+      setLastError(mem);
+   } else
+   {
+      do
+      {
+         repeat = 0;
+         startFrom = mem.realloc( mem.getSize() + m_currObj.getSize() );
+
+         if ( startFrom == -1 )
+         {
+            /* failed */
+            setLastError(mem);
+         } else
+         {
+            ptr = (char *)mem.map();
+            if ( ptr == NULL )
+            {
+               /* failed */
+               setLastError(mem);
+            } else
+            {
+               ptr += startFrom;
+
+               if ( m_currObj.readPayload( m_file, ptr ) == -1 )
+               {
+                  /* failed */
+                  setLastError(m_currObj);
+               } else
+               {
+                  mem.addObj(m_currObj);
+                  setLastError(NO_ERROR);
+
+                  if ( m_currObj.getNextChain() != 0 )
+                  {
+                     moveTo(m_currObj.getNextChain());
+                     repeat = 1;
+                  }
+               }
+
+               mem.unmap();
+            }
+         }
+      } while( ( getStatus() != -1 ) && ( repeat != 0 ) );
+   }
    return getStatus();
 }
 

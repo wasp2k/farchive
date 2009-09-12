@@ -13,6 +13,7 @@ fobject::fobject(void)
    m_ofs = -1;
    m_obj.id = -1;
    m_obj.size = 0;
+   m_obj.payloadSize = 0;
    m_obj.options = 0;
    m_obj.nextChain = 0;
 }
@@ -126,6 +127,7 @@ int fobject::writePayload(ffile &file, void *buf)
             setLastError(file);
          } else
          {
+            m_obj.payloadSize = m_obj.size;
             FDBG2( "Append object %d at: %d", m_obj.id, m_ofs );
             setLastError(NO_ERROR);
          }

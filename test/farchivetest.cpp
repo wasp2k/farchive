@@ -35,10 +35,18 @@ void test_fmem()
    }
    m.unmap();
    f.write(m);
+   f.close();
 
-   f.moveFirst();
 
-   //m2.read(f);
+   f.open("test.arc");
+   f.moveTo(2);
+
+   {
+      fmem m2;
+      f.read(m2);
+   }
+
+
    f.close();
 }
 

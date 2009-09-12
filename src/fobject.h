@@ -49,7 +49,7 @@ public:
    int writeHeader(ffile &file);
    int writePayload(ffile &file, void *buf);
 
-   inline unsigned int getObjectSize(){ return m_obj.size + sizeof( OBJECT ); }
+   inline unsigned int getObjectSize(){ return m_obj.payloadSize + sizeof( OBJECT ); }
 
    fobject &operator=(const fobject &fobj);
 
