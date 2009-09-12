@@ -7,28 +7,34 @@
 
 class fmem : public ferror
 {
-    int m_lockCnt;
+   int m_objId;
 
-    char *m_buf;
-    int m_bufSize;
+   int m_lockCnt;
 
-    int *m_lenPtr;
+   char *m_buf;
+   int m_bufSize;
+
+   int *m_lenPtr;
+
+protected:
+   inline void setObjId(int objId){ m_objId = objId; }
+
 public:
-    fmem();
-    virtual ~fmem();
+   fmem();
+   virtual ~fmem();
 
-    void *map(void);
-    void unmap(void);
+   void *map(void);
+   void unmap(void);
 
-    int alloc(int size);
-    int realloc(int size);
-    void free();
+   int alloc(int size);
+   int realloc(int size);
+   void free();
 
-    int append(void *ptr,int size);
+   int append(void *ptr,int size);
 
-    int getSize(void);
+   int getSize(void);
 
-    friend class farchive;
+   friend class farchive;
 };
 
 /* ------------------------------------------------------------------------- */

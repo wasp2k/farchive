@@ -44,7 +44,7 @@ public:
       OBJECT_LOCKED,
       OBJECT_TOO_MANY_LOCKS,
       OBJECT_NOT_LOCKED,
-
+      OBJECT_MAPPED,
 
       LAST_CODE
    };

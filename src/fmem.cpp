@@ -6,6 +6,7 @@
 
 fmem::fmem()
 {
+   m_objId = -1;
    m_lockCnt = 0;
    m_buf = 0;
    m_bufSize = 0;
@@ -24,10 +25,16 @@ fmem::~fmem()
 int fmem::alloc(int size)
 {
    setLastError(UNDEFINED);
-   free();
-   if ( realloc(size) == -1 )
+   if ( m_lockCnt != 0 )
    {
-      /* failed */
+      setLastError(OBJECT_MAPPED);
+   } else
+   {
+      free();
+      if ( realloc(size) == -1 )
+      {
+         /* failed */
+      }
    }
    return getStatus();
 }
@@ -37,51 +44,65 @@ int fmem::alloc(int size)
 int fmem::realloc(int size)
 {
    char *dataPtr;
-
    setLastError(UNDEFINED);
 
-   dataPtr = new char[size+sizeof(int)];
-   if ( dataPtr == NULL )
+   if ( m_lockCnt != 0 )
    {
-      setLastError(ALLOC_FAILED);
+      setLastError(OBJECT_MAPPED);
    } else
    {
-      if ( m_buf != NULL )             /* Keep the content of the data buffer */
+      dataPtr = new char[size+sizeof(int)];
+      if ( dataPtr == NULL )
       {
-         int oldSize = *m_lenPtr;
-         int toCopy;
+         setLastError(ALLOC_FAILED);
+      } else
+      {
+         if ( m_buf != NULL )             /* Keep the content of the data buffer */
+         {
+            int oldSize = *m_lenPtr;
+            int toCopy;
 
-         if ( oldSize >= size )        /* Calculate number of bytes to copy */
-            toCopy = size;
-         else
-            toCopy = oldSize;
+            if ( oldSize >= size )        /* Calculate number of bytes to copy */
+               toCopy = size;
+            else
+               toCopy = oldSize;
 
-         toCopy += sizeof( int );      /* First int is buffer length, therefore add int length */
+            toCopy += sizeof( int );      /* First int is buffer length, therefore add int length */
 
-         memcpy( dataPtr, m_buf, toCopy );
+            memcpy( dataPtr, m_buf, toCopy );
 
-         delete[] m_buf;           /* release old buffer */
+            delete[] m_buf;           /* release old buffer */
+         }
+         m_buf = dataPtr;
+         m_lenPtr = (int*)dataPtr;
+
+         *m_lenPtr = size;
+
+         setLastError(NO_ERROR);
       }
-      m_buf = dataPtr;
-      m_lenPtr = (int*)dataPtr;
-
-      *m_lenPtr = size;
-
-      setLastError(NO_ERROR);
    }
    return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
-void fmem::free()
+int fmem::free()
 {
-   if ( m_buf != NULL )
+   setLastError(UNDEFINED);
+   if ( m_lockCnt != 0 )
    {
-      delete[] m_buf;
-      m_buf = NULL;
-      m_lenPtr = NULL;
+      setLastError(OBJECT_MAPPED);
+   } else
+   {
+      if ( m_buf != NULL )
+      {
+         delete[] m_buf;
+         m_buf = NULL;
+         m_lenPtr = NULL;
+      }
+      setLastError(NO_ERROR);
    }
+   return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -152,30 +173,36 @@ int fmem::append(void *ptr,int size)
       setLastError(BAD_PARAMETER);
    } else
    {
-      int ofs;
-      if ( m_buf == NULL )
+      if ( m_lockCnt != 0 )
       {
-         alloc(size);
-         ofs = 0;
+         setLastError(OBJECT_MAPPED);
       } else
       {
-         ofs = *m_lenPtr;
-         realloc(*m_lenPtr + size);
-      }
-
-      if ( getStatus() != -1 )
-      {
-         char *dstPtr;
-
-         dstPtr = (char*)map();
-         if ( dstPtr == NULL)
+         int ofs;
+         if ( m_buf == NULL )
          {
-            /* failed */
+            alloc(size);
+            ofs = 0;
          } else
          {
-            memcpy( dstPtr + ofs, ptr, size );
-            setLastError(NO_ERROR);
-            unmap();
+            ofs = *m_lenPtr;
+            realloc(*m_lenPtr + size);
+         }
+
+         if ( getStatus() != -1 )
+         {
+            char *dstPtr;
+
+            dstPtr = (char*)map();
+            if ( dstPtr == NULL)
+            {
+               /* failed */
+            } else
+            {
+               memcpy( dstPtr + ofs, ptr, size );
+               unmap();
+               setLastError(NO_ERROR);
+            }
          }
       }
    }
