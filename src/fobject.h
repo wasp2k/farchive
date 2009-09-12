@@ -18,6 +18,7 @@ private:
       #endif
       unsigned int id;
       unsigned int size;
+      unsigned int payloadSize;
       unsigned int options;
       unsigned int nextChain;     /* Id of the next object */
    };
@@ -27,6 +28,8 @@ private:
 protected:
    inline void setOfs(int ofs)                           { m_ofs = ofs; }
    inline void setId(unsigned int id)                    { m_obj.id = id; }
+   inline void setSize(unsigned int size)                { m_obj.size = size; }
+   inline void setPayloadSize(unsigned int payloadSize)  { m_obj.payloadSize = payloadSize; }
    inline void setOptions(unsigned int options)          { m_obj.options = options; }
    inline void setNextChain(unsigned int nextChain)      { m_obj.nextChain = nextChain; }
 public:
@@ -35,6 +38,7 @@ public:
    inline unsigned int getOptions() const                { return m_obj.options; }
    inline unsigned int getNextChain() const              { return m_obj.nextChain; }
    inline unsigned int getSize() const                   { return m_obj.size; }
+   inline unsigned int getPayloadSize() const            { return m_obj.payloadSize; }
 
 public:
    fobject(void);
@@ -42,6 +46,7 @@ public:
 
    int readHeader(ffile &file);
    int readPayload(ffile &file, void *buf);
+   int writeHeader(ffile &file);
    int writePayload(ffile &file, void *buf);
 
    inline unsigned int getObjectSize(){ return m_obj.size + sizeof( OBJECT ); }

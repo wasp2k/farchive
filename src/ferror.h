@@ -33,6 +33,7 @@ public:
       BAD_OBJECT_PATTERN,
       BAD_FILE_OBJECT,
       BAD_ARCHIVE,
+      BAD_OFFSET,
 
       /* farchiveidx */
       BAD_INDEX_OBJECT,

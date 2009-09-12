@@ -28,15 +28,14 @@ private:
    };
 
    static const VERSION m_version;
-#if 0
-   fobjectT<HEADER> m_header;
-#endif
+   
+   fmemT<HEADER> m_header;
 
 protected:
    ffile m_file;
    fobject m_currObj;
 
-   virtual int createFileHeader(void);
+   virtual int createArchiveHeader(void);
 
 public:
    farchive();
@@ -53,13 +52,10 @@ public:
 
    virtual int moveTo(const unsigned int objId);
 
-   virtual int read(fobject &obj);
-   virtual int write(fobject &obj);
+   virtual int read(fmem &mem);
+   virtual int write(fmem &mem);
 
-   virtual int read(fmem &obj);
-   virtual int write(fmem &obj);
-
-   virtual int add(fobject &obj);
+   virtual int add(fmem &mem);
    virtual int remove(const unsigned int objId);
 };
 

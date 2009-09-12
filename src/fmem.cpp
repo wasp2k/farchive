@@ -2,15 +2,20 @@
 #include <string.h>
 #include "fmem.h"
 
+#define FMEM_OBJS_GROW_BY     16
+
 /* ------------------------------------------------------------------------- */
 
 fmem::fmem()
 {
-   m_objId = -1;
    m_lockCnt = 0;
    m_buf = 0;
    m_bufSize = 0;
    m_lenPtr = 0;
+
+   m_objList = NULL;
+   m_objCnt = 0;
+   m_objAllocated = 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -18,6 +23,7 @@ fmem::fmem()
 fmem::~fmem()
 {
    free();
+   freeObjList();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -205,6 +211,96 @@ int fmem::append(void *ptr,int size)
             }
          }
       }
+   }
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fmem::addObj(const fobject &obj)
+{
+   setLastError(UNDEFINED);
+
+   if ( m_objCnt >= m_objAllocated )
+   {
+      growObjList();
+   } else
+   {
+      setLastError(NO_ERROR);
+   }
+
+   if ( getStatus() != -1 )
+   {
+      m_objList[m_objCnt++] = obj;
+      setLastError(NO_ERROR);
+   }
+   return getLastError();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fmem::growObjList(void)
+{
+   fobject *objList;
+   int objAllocated;
+   setLastError(UNDEFINED);
+
+   objAllocated = m_objAllocated + FMEM_OBJS_GROW_BY;
+   objList = new fobject[objAllocated];
+   if ( objList == NULL )
+   {
+      setLastError(ALLOC_FAILED);
+   } else
+   {
+      if ( m_objList != NULL )
+      {
+         for ( int n = 0; n < m_objAllocated; n ++ )
+         {
+            objList[n] = m_objList[n];
+         }
+      }
+
+      m_objList = objList;
+      m_objAllocated  = objAllocated;
+
+      setLastError(NO_ERROR);
+   }
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fmem::freeObjList(void)
+{
+   setLastError(UNDEFINED);
+   if ( m_objList != NULL )
+   {
+      delete[] m_objList;
+      m_objList = NULL;
+      setLastError(NO_ERROR);
+   } else
+   {
+      setLastError(NO_ERROR);
+   }
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fmem::zero(void)
+{
+   void *ptr;
+   setLastError(UNDEFINED);
+
+   ptr = map();
+   if ( getStatus() == -1 )
+   {
+      /* failed */
+   } else
+   {
+      memset( ptr, 0, getSize() );
+      unmap();
+      setLastError(NO_ERROR);
    }
    return getStatus();
 }

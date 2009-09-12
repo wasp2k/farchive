@@ -175,6 +175,51 @@ int fobject::writePayload(ffile &file, void *buf)
 
 /* ------------------------------------------------------------------------- */
 
+int fobject::writeHeader(ffile &file)
+{
+   setLastError(UNDEFINED);
+
+   if (!file.isOpen())
+   {
+      setLastError(BAD_FILE_OBJECT);
+   } else
+   {
+      if (m_ofs == -1)
+      {
+         setLastError(BAD_OFFSET);
+      } else
+      {
+         if ( file.seek( m_ofs, ffile::SET ) == -1 ) /* Move to the object offset */
+         {
+            setLastError(file);
+         } else
+         {
+            setLastError(NO_ERROR);
+         }
+      }
+
+      if (getStatus()!=-1)
+      {
+         #if FOBJECT_INCLUDE_DEBUG_PATTEN
+         m_obj.pattern = FOBJECT_PATTERN;
+         #endif
+
+         if ( file.write( &m_obj, sizeof( m_obj ) ) == -1 )    /* write object header */
+         {
+            setLastError(file);
+         } else
+         {
+            setLastError(NO_ERROR);
+         }
+      }
+   }
+
+   FDBG2( "Flush ofs:%d %d", m_ofs, getLastError() );
+   return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
 fobject &fobject::operator=(const fobject &fobj)
 {
    this->m_ofs = fobj.m_ofs;

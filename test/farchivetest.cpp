@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "farchiveidx.h"
+#include "farchive.h"
 #include "fmem.h"
 
 struct DATA
@@ -18,16 +18,16 @@ void test_fmem()
 
    f.create("test.arc");
 
-   m.setSize(1024);
+   fmem m;
+   m.alloc(1024);
    char *p = (char*)m.map();
    if ( p != NULL )
       memset( p, 0xaa, 1024 );
    m.unmap();
 
-   f.write(m);
+   f.add(m);
 
-#if 0
-   m.setSize(2048);
+   m.realloc(2048);
    p = (char*)m.map();
    if ( p!= NULL )
    {
@@ -37,7 +37,6 @@ void test_fmem()
    f.write(m);
 
    f.moveFirst();
-#endif
 
    //m2.read(f);
    f.close();

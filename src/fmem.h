@@ -2,24 +2,32 @@
 #define FMEM_H
 
 #include "ferror.h"
+#include "fobject.h"
 
 /* ------------------------------------------------------------------------- */
 
 class fmem : public ferror
 {
-   int m_objId;
-
    int m_lockCnt;
 
    char *m_buf;
    int m_bufSize;
-
    int *m_lenPtr;
 
 protected:
-   inline void setObjId(int objId){ m_objId = objId; }
-public:
-   inline int getObjId(void){ return m_objId; }
+   fobject *m_objList;
+   int m_objCnt;
+   int m_objAllocated;
+
+   inline int getObjCnt(void){ return m_objCnt; }
+   inline fobject &getObj(int idx){ return m_objList[idx]; }
+
+   int addObj(const fobject &obj);
+   int growObjList(void);
+   int freeObjList(void);
+
+   inline char *getBuf(void){ return m_buf; }
+   inline int getBufSize(void){ return *m_lenPtr + sizeof( int ); }
 
 public:
    fmem();
@@ -35,7 +43,28 @@ public:
 
    int getSize(void);
 
+   int zero(void);
+
    friend class farchive;
+};
+
+/* ------------------------------------------------------------------------- */
+
+template<class TYPE>
+class fmemT : public fmem
+{
+   TYPE *m_ptr;
+public:
+   fmemT(void)
+   {
+      alloc(sizeof(TYPE));
+      m_ptr = (TYPE*)map();
+   }
+   virtual ~fmemT(void)
+   {
+      unmap();
+   }
+   inline TYPE *operator->(){ return m_ptr; }
 };
 
 /* ------------------------------------------------------------------------- */

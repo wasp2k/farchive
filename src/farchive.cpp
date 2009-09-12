@@ -37,8 +37,8 @@ int farchive::create(const char *fileName)
    setLastError(UNDEFINED);
    if ( m_file.create( fileName ) == -1 )                                  /* Create file */
    {
-      setLastError(m_file);
       /* failed */
+      setLastError(m_file);
    } else
    {
       if ( m_file.write( &m_version, sizeof( m_version ) ) == -1 )         /* Write file pattern */
@@ -47,12 +47,12 @@ int farchive::create(const char *fileName)
          /* failed */
       } else
       {
-         if ( createFileHeader() == -1 )                                   /* create file header */
+         if ( createArchiveHeader() == -1 )                                   /* create file header */
          {
             /* failed */
          } else
          {
-            close();                                                             /* Close file */
+            close();                                                       /* Close file */
          }
       }
    }
@@ -69,11 +69,10 @@ int farchive::create(const char *fileName)
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::createFileHeader(void)
-{
+int farchive::createArchiveHeader(void)
+{ 
    setLastError(UNDEFINED);
 
-#if 0 /* TODO */
    m_header.zero();
    m_header->lastID = 1;
 
@@ -84,9 +83,6 @@ int farchive::createFileHeader(void)
    {
       setLastError(NO_ERROR);
    }
-#else
-   setLastError(NO_ERROR);
-#endif
    return getStatus();
 }
 
@@ -152,28 +148,25 @@ int farchive::close(void)
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::add(fobject &/*obj*/)
+int farchive::add(fmem &mem)
 {
    setLastError(UNDEFINED);
-#if 0
-   obj.setOfs(-1);
-   obj.setId( m_header->lastID++ );
-   if ( obj.flush(m_file) == -1 )
+
+   if ( mem.freeObjList() == -1 )
    {
-      setLastError(obj);
+      /* failed */
+      setLastError(mem);
    } else
    {
-      if ( m_header.flush(m_file) == -1 )
+      if ( write(mem) == -1 )
       {
-         setLastError(m_header);
+         /* failed */
       } else
       {
          setLastError(NO_ERROR);
       }
    }
-
-   FDBG2( "Add Object: %d (%d)", obj.getId(), getLastError());
-#endif
+   FDBG1( "Add Object: (%d)", getLastError());
    return getStatus();
 }
 
@@ -232,7 +225,8 @@ int farchive::moveNext()
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::read(fobject &/*obj*/)
+#if 0
+int farchive::read(fmem &/*obj*/)
 {
    setLastError(UNDEFINED);
 #if 0
@@ -247,10 +241,12 @@ int farchive::read(fobject &/*obj*/)
 #endif
    return getStatus();
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::write(fobject &/*obj*/)
+#if 0
+int farchive::write(fmem &/*obj*/)
 {
    setLastError(UNDEFINED);
 #if 0
@@ -270,6 +266,7 @@ int farchive::write(fobject &/*obj*/)
 #endif
    return getStatus();
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -360,9 +357,88 @@ int farchive::read(fmem &/*obj*/)
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::write(fmem &/*obj*/)
+int farchive::write(fmem &mem)
 {
+   char *ptr;
+   int bytesLeft;
+
    setLastError(UNDEFINED);
+
+   ptr = (char *)mem.map();
+   if ( ptr == NULL )
+   {
+      setLastError(mem);
+   } else
+   {
+      fobject *lastObj = NULL;
+
+      bytesLeft = mem.getSize();
+
+      setLastError(NO_ERROR);
+      for ( int n = 0; n < mem.getObjCnt(); n ++ )
+      {
+         fobject &obj = mem.getObj(n);
+
+         if ( obj.writePayload(m_file, ptr ) == -1 )
+         {
+            /* failed */
+            setLastError(obj);
+            break;
+         } else
+         {
+            ptr += obj.getSize();
+            bytesLeft -= obj.getSize();
+         }
+         lastObj = &obj;       /* Remember last object to update next chain ID of needed */
+      }
+
+      if ( getStatus() != -1 )
+      {
+         if ( bytesLeft > 0 )
+         {
+            fobject obj;
+
+            obj.setOfs(-1);
+            obj.setId(m_header->lastID++);
+            obj.setSize(bytesLeft);
+
+            if ( obj.writePayload(m_file,ptr) == -1 )
+            {
+               setLastError(obj);
+            } else
+            {
+               if ( mem.addObj(obj) == -1 )
+               {
+                  /* failed */
+                  setLastError(mem);
+               } else
+               {
+
+                  if ( lastObj != NULL )
+                  {
+                     lastObj->setNextChain(obj.getId());
+                     lastObj->writeHeader(m_file);
+                  } else
+                  {
+                     setLastError(NO_ERROR);
+                  }
+
+                  if ( getStatus() != -1 )
+                  {
+                     if ( write(m_header) == -1 )
+                     {
+                        /* failed */
+                     } else
+                     {
+                        setLastError(NO_ERROR);
+                     }
+                  }
+               }
+            }
+         }
+      }
+      mem.unmap();
+   }
    return getStatus();
 }
 
