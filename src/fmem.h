@@ -1,7 +1,7 @@
 #ifndef FMEM_H
 #define FMEM_H
 
-#include "fobject.h"
+#include "ferror.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -18,6 +18,8 @@ class fmem : public ferror
 
 protected:
    inline void setObjId(int objId){ m_objId = objId; }
+public:
+   inline int getObjId(void){ return m_objId; }
 
 public:
    fmem();
@@ -28,8 +30,7 @@ public:
 
    int alloc(int size);
    int realloc(int size);
-   void free();
-
+   int free();
    int append(void *ptr,int size);
 
    int getSize(void);

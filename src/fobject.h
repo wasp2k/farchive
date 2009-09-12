@@ -23,54 +23,32 @@ private:
    };
 
    OBJECT m_obj;
-   char *m_data;
-   int m_dataSize;
-
-   int allocPayload(int size);
-   void freePayload(void);
 
 protected:
-   inline void setOfs(int ofs){ m_ofs = ofs; }
-          void setId(unsigned int id);
-          void setOptions(unsigned int options);
-          void setNextChain(unsigned int nextChain);
+   inline void setOfs(int ofs)                           { m_ofs = ofs; }
+   inline void setId(unsigned int id)                    { m_obj.id = id; }
+   inline void setOptions(unsigned int options)          { m_obj.options = options; }
+   inline void setNextChain(unsigned int nextChain)      { m_obj.nextChain = nextChain; }
+public:
+   inline          int getOfs() const                    { return m_ofs; }
+   inline unsigned int getId() const                     { return m_obj.id; }
+   inline unsigned int getOptions() const                { return m_obj.options; }
+   inline unsigned int getNextChain() const              { return m_obj.nextChain; }
+   inline unsigned int getSize() const                   { return m_obj.size; }
 
 public:
-   fobject(unsigned int size = 0);
+   fobject(void);
    virtual ~fobject();
 
    int readHeader(ffile &file);
-   int read(ffile &file);
-   int read(ffile &file, void *buf);
-   int flush(ffile &file);
-   int flush(ffile &file, void *buf);
+   int readPayload(ffile &file, void *buf);
+   int writePayload(ffile &file, void *buf);
 
-   inline          int getOfs() const        {return m_ofs; }
-   inline unsigned int getId() const         {return m_obj.id; }
-   inline unsigned int getOptions() const    {return m_obj.options; }
-   inline unsigned int getNextChain() const  {return m_obj.nextChain; }
-   inline unsigned int getSize() const       {return m_obj.size; }
-   inline void *getPtr() const               { return m_data; }
-
-   inline unsigned int getBlockSize(){ return m_obj.size + sizeof( OBJECT ); }
-
+   inline unsigned int getObjectSize(){ return m_obj.size + sizeof( OBJECT ); }
 
    fobject &operator=(const fobject &fobj);
 
-   void zero();
-
    friend class farchive;
-   friend class farchiveidx;
-   friend class fmem;
-};
-
-template<class TYPE>
-class fobjectT : public fobject
-{
-public:
-   fobjectT(void) : fobject( sizeof( TYPE ) ){}
-
-   inline TYPE *operator->(){ return (TYPE*)getPtr(); }
 };
 
 #endif // FCOBJECT_H

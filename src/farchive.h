@@ -9,6 +9,9 @@
 class farchive : public ferror
 {
 private:
+   /**
+     * Archive version structure
+     */
    struct VERSION
    {
       char pattern[5];
@@ -16,13 +19,18 @@ private:
       unsigned short version;
    };
 
+   /**
+     * Archive header structure
+     */
    struct HEADER
    {
       unsigned int lastID;
    };
 
    static const VERSION m_version;
+#if 0
    fobjectT<HEADER> m_header;
+#endif
 
 protected:
    ffile m_file;

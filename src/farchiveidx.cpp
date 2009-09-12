@@ -1,5 +1,7 @@
 #include "farchiveidx.h"
 
+#if 0
+
 #define FARCHIVEIDX_FIRST_INDEX_ID     2
 
 /* ------------------------------------------------------------------------- */
@@ -365,3 +367,5 @@ int farchiveidx::remove(const unsigned int objId)
 }
 
 /* ------------------------------------------------------------------------- */
+
+#endif

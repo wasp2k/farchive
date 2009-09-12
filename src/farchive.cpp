@@ -73,6 +73,7 @@ int farchive::createFileHeader(void)
 {
    setLastError(UNDEFINED);
 
+#if 0 /* TODO */
    m_header.zero();
    m_header->lastID = 1;
 
@@ -83,6 +84,9 @@ int farchive::createFileHeader(void)
    {
       setLastError(NO_ERROR);
    }
+#else
+   setLastError(NO_ERROR);
+#endif
    return getStatus();
 }
 
@@ -107,6 +111,7 @@ int farchive::open(const char *fileName)
             setLastError(BAD_ARCHIVE_VERSION);
          } else
          {
+#if 0
             m_header.setOfs( sizeof( m_version ) );
             if ( m_header.read(m_file) == -1 )                       /* Read header information */
             {
@@ -122,6 +127,9 @@ int farchive::open(const char *fileName)
                   setLastError(NO_ERROR);
                }
             }
+#else
+            setLastError(NO_ERROR);
+#endif
          }
       }
    }
@@ -144,9 +152,10 @@ int farchive::close(void)
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::add(fobject &obj)
+int farchive::add(fobject &/*obj*/)
 {
    setLastError(UNDEFINED);
+#if 0
    obj.setOfs(-1);
    obj.setId( m_header->lastID++ );
    if ( obj.flush(m_file) == -1 )
@@ -164,7 +173,7 @@ int farchive::add(fobject &obj)
    }
 
    FDBG2( "Add Object: %d (%d)", obj.getId(), getLastError());
-
+#endif
    return getStatus();
 }
 
@@ -173,6 +182,7 @@ int farchive::add(fobject &obj)
 int farchive::moveFirst()
 { 
    setLastError(UNDEFINED);
+#if 0
    m_currObj.setOfs( m_header.getOfs() );
    if ( m_currObj.readHeader( m_file ) == -1 )
    {
@@ -182,6 +192,7 @@ int farchive::moveFirst()
       setLastError(NO_ERROR);
    }
    FDBG2( "MoveFirst (%d)", m_currObj.getId(), getLastError());
+#endif
    return getStatus();
 }
 
@@ -196,7 +207,7 @@ int farchive::moveNext()
    do
    {
       repeat = 0;
-      nextOfs = m_currObj.getOfs() + m_currObj.getBlockSize();
+      nextOfs = m_currObj.getOfs() + m_currObj.getObjectSize();
       m_currObj.setOfs( nextOfs );
 
       if ( m_currObj.readHeader( m_file ) == -1 )
@@ -221,9 +232,10 @@ int farchive::moveNext()
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::read(fobject &obj)
+int farchive::read(fobject &/*obj*/)
 {
    setLastError(UNDEFINED);
+#if 0
    obj.setOfs( m_currObj.getOfs() );
    if ( obj.read( m_file ) == -1 )
    {
@@ -232,15 +244,16 @@ int farchive::read(fobject &obj)
    {
       setLastError(NO_ERROR);
    }
+#endif
    return getStatus();
 }
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::write(fobject &obj)
+int farchive::write(fobject &/*obj*/)
 {
    setLastError(UNDEFINED);
-
+#if 0
    if ( obj.getOfs() == -1 )
    {
       add(obj);
@@ -254,6 +267,7 @@ int farchive::write(fobject &obj)
          setLastError(NO_ERROR);
       }
    }
+#endif
    return getStatus();
 }
 
@@ -299,10 +313,10 @@ int farchive::moveTo(const unsigned int objId)
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::remove(const unsigned int objId)
+int farchive::remove(const unsigned int /*objId*/)
 {
    setLastError(UNDEFINED);
-
+#if 0
    if ( moveTo(objId) != -1 )
    {
       m_currObj.setId(0);
@@ -322,6 +336,7 @@ int farchive::remove(const unsigned int objId)
    {
       FERR1( "remove obj id: %d failed", objId );
    }
+#endif
    return getStatus();
 }
 
@@ -337,7 +352,7 @@ int farchive::isOpen(void)
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::read(fmem &obj)
+int farchive::read(fmem &/*obj*/)
 {
    setLastError(UNDEFINED);
    return getStatus();
@@ -345,7 +360,7 @@ int farchive::read(fmem &obj)
 
 /* ------------------------------------------------------------------------- */
 
-int farchive::write(fmem &obj)
+int farchive::write(fmem &/*obj*/)
 {
    setLastError(UNDEFINED);
    return getStatus();

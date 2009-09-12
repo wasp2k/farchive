@@ -1,6 +1,8 @@
 #ifndef FARCHIVEIDX_H
 #define FARCHIVEIDX_H
 
+#if 0
+
 #include "farchive.h"
 
 #define FINDEX_SIZE    512
@@ -54,5 +56,7 @@ public:
 
    virtual int remove(const unsigned int objId);
 };
+
+#endif
 
 #endif // FARCHIVEIDX_H

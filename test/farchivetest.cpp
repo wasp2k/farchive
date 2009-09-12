@@ -14,29 +14,19 @@ char buf[128] = {};
 
 void test_fmem()
 {
-   fmem  m;
-   memset(buf,0xaa,sizeof(buf));
-   m.append(buf,sizeof(buf));
-   memset(buf,0xbb,sizeof(buf));
-   m.append(buf,sizeof(buf));
-   m.free();
-
-#if 0
    farchive f;
-   fmem m;
-   fmem m2;
 
    f.create("test.arc");
 
    m.setSize(1024);
    char *p = (char*)m.map();
-   if ( p!= NULL )
-   {
+   if ( p != NULL )
       memset( p, 0xaa, 1024 );
-   }
    m.unmap();
+
    f.write(m);
 
+#if 0
    m.setSize(2048);
    p = (char*)m.map();
    if ( p!= NULL )
@@ -47,11 +37,10 @@ void test_fmem()
    f.write(m);
 
    f.moveFirst();
+#endif
 
    //m2.read(f);
    f.close();
-#endif
-
 }
 
 int main(int /*argc*/, char */*argv*/[])
