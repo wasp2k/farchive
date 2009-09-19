@@ -14,6 +14,8 @@ class fmem : public ferror
    int m_bufSize;
    int m_size;
 
+   fobject::TYPE m_type;
+
 protected:
    fobject *m_objList;
    int m_objCnt;
@@ -44,6 +46,8 @@ public:
    int zero(void);
 
    int getId(void);
+   fobject::TYPE getType(void);
+   int setType(fobject::TYPE type);
 
    friend class farchive;
    friend class farchiveidx;

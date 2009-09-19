@@ -75,8 +75,9 @@ int farchive::createArchiveHeader(void)
 
    m_header.zero();
    m_header->lastID = 1;
+   m_header.setType(fobject::TYPE_HEADER);
 
-   if ( farchive::add(m_header) == -1 )
+   if ( add(m_header) == -1 )
    {
       /* failed */
    } else
@@ -115,16 +116,7 @@ int farchive::open(const char *fileName)
                setLastError(m_header);
             } else
             {
-#if 0
-               m_currObj.setOfs(m_header.getOfs());/* Adjust current object */
-               if ( m_currObj.readHeader(m_file) == -1 )
-               {
-                  setLastError(m_currObj);
-               } else
-               {
-                  setLastError(NO_ERROR);
-               }
-#endif
+               setLastError(NO_ERROR);
             }
             m_header.map();
          }
@@ -460,6 +452,14 @@ int farchive::write(fmem &mem)
             obj.setOfs(-1);
             obj.setId(m_header->lastID++);
             obj.setSize(bytesLeft);
+
+            if ( mem.getObjCnt() == 0 )                  /* Set type 'object' for the first object */
+            {
+               obj.setOptions(0, fobject::OPT_FRAGMENT);
+            } else
+            {
+               obj.setOptions(fobject::OPT_FRAGMENT, fobject::OPT_FRAGMENT); /* All other objects are 'fragments' */
+            }
 
             if ( obj.writePayload(m_file,ptr) == -1 )
             {

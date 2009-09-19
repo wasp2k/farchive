@@ -12,6 +12,7 @@ fmem::fmem()
    m_buf = 0;
    m_bufSize = 0;
    m_size = 0;
+   m_type = fobject::TYPE_UNKNOWN;
 
    m_objList = NULL;
    m_objCnt = 0;
@@ -316,6 +317,29 @@ int fmem::getId(void)
       setLastError(NO_ERROR);
    }
    return getStatus(objId);
+}
+
+/* ------------------------------------------------------------------------- */
+
+fobject::TYPE fmem::getType(void)
+{
+   if ( getObjCnt() > 0 )
+   {
+      m_type = getObj(0).getType();
+   }
+   return m_type;
+}
+
+/* ------------------------------------------------------------------------- */
+
+int fmem::setType(fobject::TYPE type)
+{
+   m_type = type;
+   if ( getObjCnt() > 0 )
+   {
+      getObj(0).setType(type);
+   }
+   return 1;
 }
 
 /* ------------------------------------------------------------------------- */

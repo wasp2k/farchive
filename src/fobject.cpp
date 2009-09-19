@@ -16,6 +16,7 @@ fobject::fobject(void)
    m_obj.payloadSize = 0;
    m_obj.options = 0;
    m_obj.nextChain = 0;
+   m_obj.type = TYPE_UNKNOWN;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -224,6 +225,14 @@ int fobject::writeHeader(ffile &file)
 
    FDBG2( "Flush ofs:%d %d", m_ofs, getLastError() );
    return getStatus();
+}
+
+/* ------------------------------------------------------------------------- */
+
+void fobject::setOptions(unsigned short options, unsigned short mask)
+{
+   m_obj.options &= ~mask;
+   m_obj.options |= options & mask;
 }
 
 /* ------------------------------------------------------------------------- */
