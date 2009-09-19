@@ -108,17 +108,23 @@ int farchive::open(const char *fileName)
             setLastError(BAD_ARCHIVE_VERSION);
          } else
          {
-            moveFirst();
-            m_header.unmap();
-            m_header.free();
-            if ( read(m_header) == -1 )                       /* Read header information */
+            m_currObj.setOfs( m_file.tell() );
+            if ( m_currObj.readHeader(m_file) == -1 )
             {
-               setLastError(m_header);
+               setLastError(m_currObj);
             } else
             {
-               setLastError(NO_ERROR);
+               m_header.unmap();
+               m_header.free();
+               if ( read(m_header) == -1 )                       /* Read header information */
+               {
+                  setLastError(m_header);
+               } else
+               {
+                  setLastError(NO_ERROR);
+               }
+               m_header.map();
             }
-            m_header.map();
          }
       }
    }

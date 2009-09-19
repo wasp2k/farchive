@@ -57,6 +57,8 @@ public:
 
    virtual int add(fmem &mem);
    virtual int remove(const unsigned int objId);
+
+   const fobject &getCurrObj(void) const { return m_currObj; }
 };
 
 #endif // FARCHIVE_H
