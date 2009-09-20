@@ -151,21 +151,27 @@ int farchive::add(fmem &mem)
 {
    setLastError(UNDEFINED);
 
-   if ( mem.freeObjList() == -1 )
+   if ( mem.getObjCnt() == 0 )
    {
-      /* failed */
-      setLastError(mem);
-   } else
-   {
-      if ( write(mem) == -1 )
+      if ( mem.freeObjList() == -1 )
       {
          /* failed */
+         setLastError(mem);
       } else
       {
-         setLastError(NO_ERROR);
+         if ( write(mem) == -1 )
+         {
+            /* failed */
+         } else
+         {
+            setLastError(NO_ERROR);
+         }
       }
+      FDBG1( "Add Object: (%d)", getLastError());
+   } else
+   {
+      write(mem);
    }
-   FDBG1( "Add Object: (%d)", getLastError());
    return getStatus();
 }
 
@@ -461,9 +467,11 @@ int farchive::write(fmem &mem)
 
             if ( mem.getObjCnt() == 0 )                  /* Set type 'object' for the first object */
             {
+               obj.setType( mem.getType() );
                obj.setOptions(0, fobject::OPT_FRAGMENT);
             } else
             {
+               obj.setType( mem.getObj(0).getType() );
                obj.setOptions(fobject::OPT_FRAGMENT, fobject::OPT_FRAGMENT); /* All other objects are 'fragments' */
             }
 

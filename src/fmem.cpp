@@ -12,7 +12,7 @@ fmem::fmem()
    m_buf = 0;
    m_bufSize = 0;
    m_size = 0;
-   m_type = fobject::TYPE_UNKNOWN;
+   m_type = fobject::TYPE_OBJECT;
 
    m_objList = NULL;
    m_objCnt = 0;

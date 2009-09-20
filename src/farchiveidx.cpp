@@ -59,6 +59,7 @@ int farchiveidx::createArchiveHeader(void)
    m_index.free();
    m_index.alloc( sizeof( ITEM ) * FINDEX_GROW_BY );
    m_index.zero();
+   m_index.setType( fobject::TYPE_INDEX);
 
    if ( farchive::createArchiveHeader() == -1 )    /* Create standard header */
    {
@@ -77,7 +78,13 @@ int farchiveidx::createArchiveHeader(void)
             setLastError(BAD_INDEX_OBJECT);
          } else
          {
-            setLastError(NO_ERROR);
+            if ( registerIndex(m_index) == -1 )
+            {
+               /* failed */
+            } else
+            {
+               setLastError(NO_ERROR);
+            }
          }
       }
    }
@@ -154,6 +161,8 @@ int farchiveidx::findObject(const unsigned int objId, int &pos )
 
    setLastError(UNDEFINED);
 
+   pos = -1;
+
    index = (ITEM*)m_index.map();
    if ( index == NULL )
    {
@@ -193,13 +202,13 @@ int farchiveidx::addObject(const fobject &obj)
    ITEM *index;
 
    res = findObject( 0, itemIdx );
-   if ( (res == 0) && (getLastError() == OBJECT_NOT_FOUND))
+   if ( res == 0 )
    {
       m_index.grow( sizeof(ITEM) * FINDEX_GROW_BY );
       res = findObject( 0, itemIdx );
    }
 
-   if ( getStatus() == -1 )
+   if ( ( res != 1 ) || ( getStatus() == -1 ) )
    {
       /* failed */
    } else

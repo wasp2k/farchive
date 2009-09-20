@@ -14,12 +14,8 @@ struct DATA
 
 char buf[128] = {};
 
-void test_fmem()
+void test_addObj(farchive &f, int pattern)
 {
-   farchiveidx f;
-
-   f.create("test.arc");
-
    fmem m;
    m.alloc(1024);
    char *p = (char*)m.map();
@@ -33,7 +29,7 @@ void test_fmem()
    p = (char*)m.map();
    if ( p!= NULL )
    {
-      memset( p + 1024, 0xbb, 1024 );
+      memset( p + 1024, pattern, 1024 );
    }
    m.unmap();
    f.write(m);
@@ -42,7 +38,7 @@ void test_fmem()
    p = (char*)m.map();
    if ( p!= NULL )
    {
-      memset( p + 2048, 0xcc, 2048 );
+      memset( p + 2048, pattern, 2048 );
    }
    m.unmap();
    f.write(m);
@@ -52,7 +48,7 @@ void test_fmem()
    p = (char*)m.map();
    if ( p!= NULL )
    {
-      memset( p, 0xdd, 128 );
+      memset( p, pattern, 128 );
    }
    m.unmap();
    f.write(m);
@@ -61,28 +57,21 @@ void test_fmem()
    p = (char*)m.map();
    if ( p!= NULL )
    {
-      memset( p, 0xee, 8192);
+      memset( p, pattern, 8192);
    }
    m.unmap();
    f.write(m);
+}
 
-   f.close();
+void test_fmem()
+{
+   farchiveidx f;
 
-
-   f.open("test.arc");
-   f.moveTo(2);
-
-   fmem m2;
-   f.read(m2);
-
+   f.create("test.arc");
+   for ( int i = 0; i < 1024; i ++ )
    {
-      ffile f;
-      f.create("raw.raw");
-      f.write(m2.map(),m2.getSize());
-      m2.unmap();
-      f.close();
+      test_addObj( f, i );
    }
-
    f.close();
 }
 
